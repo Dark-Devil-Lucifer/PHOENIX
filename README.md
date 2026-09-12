@@ -115,7 +115,7 @@ http://127.0.0.1:8000/docs
                        |
                        v
              Resolution / Audit
-
+```
 Technology Stack
 Frontend
 HTML5
@@ -138,7 +138,9 @@ Nmap
 Wireshark
 OWASP security testing methodology
 Controlled security testing scenarios
+
 Architecture
+```
                     +----------------------+
                     |      SOC Analyst     |
                     |       SOC Lead       |
@@ -208,7 +210,7 @@ PHOENIX/
 ├── .gitignore
 ├── requirements.txt
 └── README.md
-
+```
 Author
 Ajay Chouhan
 
