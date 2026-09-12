@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PHOENIX | SIEM Investigation</title>
+<link rel="stylesheet" href="/frontend/css/phoenix.css">
+    <link rel="stylesheet" href="/frontend/css/phoenix-theme.css?v=2">
+    
+
+<style>
+.siem-page{max-width:1780px;margin:auto;padding:24px 26px 42px}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:16px}
+.eyebrow{font-size:8px;font-weight:800;letter-spacing:.16em;color:#4c9aca;margin-bottom:5px}
+.page-head h1{margin:0;font-size:25px}
+.page-head p{margin:6px 0 0;color:#718997;font-size:10px}
+.actions{display:flex;gap:7px}
+.button{height:34px;padding:0 12px;border:1px solid var(--border);border-radius:6px;background:#0b1d2b;color:#a8bdc9;font-size:9px;font-weight:700;cursor:pointer}
+.button:hover{background:#102b3d;border-color:#315f79;color:#e0edf3}
+.button.primary{background:#0d3550;border-color:#276f9f;color:#9dd7ff}
+
+.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin-bottom:11px}
+.metric{min-height:69px;padding:11px 13px;border:1px solid var(--border);border-radius:7px;background:#0b1d2b}
+.metric span{display:block;color:#688292;font-size:7px;text-transform:uppercase;letter-spacing:.08em}
+.metric strong{display:block;margin-top:8px;color:#d6e3e8;font-size:20px}
+.metric.blue strong{color:#68bdff}
+.metric.red strong{color:#ff6579}
+.metric.orange strong{color:#ffab6e}
+.metric.yellow strong{color:#e6cb69}
+.metric.green strong{color:#61d7a7}
+
+.workspace{display:grid;grid-template-columns:minmax(650px,1.25fr) minmax(430px,.75fr);gap:11px}
+.panel{border:1px solid var(--border);border-radius:8px;background:#0b1d2b;overflow:hidden}
+.panel-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border)}
+.panel-head h2{margin:0;font-size:11px}
+.panel-head p{margin:3px 0 0;color:#637e8e;font-size:8px}
+
+.search-box{padding:12px;background:#091a28;border-bottom:1px solid var(--border)}
+.query-row{display:grid;grid-template-columns:1fr auto auto;gap:7px}
+.query-row input{height:36px;border:1px solid var(--border);border-radius:5px;background:#071724;color:#c9d8df;padding:0 10px;font:8px ui-monospace,monospace;outline:none}
+.query-row input:focus{border-color:#327fa9}
+.search-hint{margin-top:6px;color:#5f7a8b;font-size:7px}
+
+.filters{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:10px;background:#091a28;border-bottom:1px solid var(--border)}
+.filters input,.filters select{height:31px;border:1px solid var(--border);border-radius:5px;background:#0b2030;color:#b9cbd4;padding:0 8px;font-size:8px;outline:none}
+
+.table-container{overflow:auto;max-height:650px}
+table{width:100%;border-collapse:collapse}
+th{position:sticky;top:0;z-index:2;background:#091a28;padding:8px 9px;border-bottom:1px solid #25465b;text-align:left;color:#617c8d;font-size:7px;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+td{padding:9px;border-bottom:1px solid rgba(25,57,77,.5);color:#a9bdc6;font-size:8px;vertical-align:top}
+.event-row{cursor:pointer}
+.event-row:hover{background:#102b3d}
+.event-row.selected{background:#103044;box-shadow:inset 2px 0 #38aaff}
+.uid{font:7px ui-monospace,monospace;color:#4caef0}
+.event-title{margin-top:3px;color:#d3dfe5;font-size:8px;font-weight:700}
+.sub{margin-top:3px;color:#617b8b;font-size:7px}
+.sev{display:inline-flex;padding:4px 6px;border-radius:4px;font-size:7px;text-transform:uppercase}
+.sev.critical{border:1px solid #6a3440;background:#29171c;color:#ff697b}
+.sev.high{border:1px solid #65432f;background:#2a1e18;color:#ffad70}
+.sev.medium{border:1px solid #5b502d;background:#292417;color:#e5cb69}
+.sev.low,.sev.informational{border:1px solid #294b61;background:#10293a;color:#91aec0}
+
+.detail{min-height:720px}
+.detail-empty{min-height:690px;display:grid;place-items:center;text-align:center;padding:20px;color:#5e7788;font-size:8px}
+.detail-head{padding:15px;border-bottom:1px solid var(--border);background:#091b2a}
+.detail-title{font-size:16px;color:#d9e5ea;margin:3px 0}
+.detail-uid{font:8px ui-monospace,monospace;color:#4caef0}
+.detail-actions{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.section{border-bottom:1px solid var(--border)}
+.section-title{padding:10px 13px;border-bottom:1px solid var(--border);font-size:9px;font-weight:750;color:#cfdde3}
+.context{display:grid;grid-template-columns:125px 1fr}
+.context div{padding:8px 10px;border-bottom:1px solid rgba(25,57,77,.45);font-size:8px;word-break:break-word}
+.context div:nth-child(odd){color:#627c8c}
+.context div:nth-child(even){color:#c2d2da}
+.message{padding:12px;color:#8299a6;font-size:8px;line-height:1.6;word-break:break-word}
+.json{margin:10px;padding:10px;max-height:260px;overflow:auto;border:1px solid #1d3b4e;border-radius:5px;background:#071724;color:#89adbe;font:7px/1.55 ui-monospace,monospace;white-space:pre-wrap}
+
+.correlation{padding:12px}
+.correlation textarea{width:100%;min-height:105px;box-sizing:border-box;border:1px solid var(--border);border-radius:5px;background:#071724;color:#bcd0d9;padding:9px;font:8px ui-monospace,monospace;resize:vertical;outline:none}
+.correlation textarea:focus{border-color:#327fa9}
+.correlation-actions{display:flex;justify-content:flex-end;margin-top:7px}
+.result{margin-top:10px;border:1px solid #25465b;border-radius:5px;background:#081a26}
+.result-head{padding:8px 10px;border-bottom:1px solid #1e3c4f;color:#cbd9df;font-size:8px;font-weight:700}
+.result-body{padding:10px;color:#7893a1;font-size:7px;line-height:1.6}
+
+.empty{padding:35px;text-align:center;color:#5e7788;font-size:8px}
+.loading{padding:35px;text-align:center;color:#607a8b;font-size:8px}
+.toast{position:fixed;right:20px;bottom:20px;z-index:200;padding:10px 13px;border:1px solid #2b5c76;border-radius:6px;background:#0a2232;color:#bcd2dd;font-size:8px;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s}
+.toast.show{opacity:1;transform:translateY(0)}
+
+@media(max-width:1250px){
+.metrics{grid-template-columns:repeat(3,1fr)}
+.workspace{grid-template-columns:1fr}
+}
+@media(max-width:800px){
+.filters{grid-template-columns:1fr 1fr}
+.query-row{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+.siem-page{padding:17px 10px 30px}
+.page-head{flex-direction:column;align-items:flex-start}
+.metrics{grid-template-columns:repeat(2,1fr)}
+.filters{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header class="topbar">
+
+<a class="brand" href="/frontend/" style="text-decoration:none">
+<div class="brand-symbol"><span>P</span></div>
+<div class="brand-text">
+<strong>PHOENIX</strong>
+<span>Autonomous Enterprise Cyber Defense Platform</span>
+</div>
+</a>
+
+<div class="global-search">
+<span class="search-icon">⌕</span>
+<input id="globalSearch" type="search" placeholder="Search events, incidents, assets, IOCs...">
+<kbd>/</kbd>
+</div>
+
+<div class="header-actions">
+
+<button class="header-button" id="refreshHeader">↻</button>
+
+<button class="header-button">
+♢
+<span class="notification-dot"></span>
+</button>
+
+<div class="header-divider"></div>
+
+<div class="analyst-menu">
+<div class="analyst-avatar">A</div>
+<div class="analyst-info">
+<strong>Analyst</strong>
+<span>SOC Analyst</span>
+</div>
+</div>
+
+</div>
+</header>
+
+
+<nav class="primary-nav">
+
+<a class="nav-item" href="/frontend/">Security Operations</a>
+<a class="nav-item" href="/frontend/pages/incidents.html">Incidents</a>
+<a class="nav-item" href="/frontend/pages/detections.html">Detections</a>
+<a class="nav-item" href="/frontend/pages/intelligence.html">Threat Intelligence</a>
+<a class="nav-item" href="/frontend/pages/assets.html">Assets</a>
+<a class="nav-item" href="/frontend/pages/response.html">Response</a>
+
+<button class="nav-more" id="moreButton">
+More <span>⌄</span>
+</button>
+
+<div class="more-menu" id="moreMenu">
+
+<div class="more-column">
+<span class="menu-heading">Protect</span>
+<a href="/frontend/pages/vulnerabilities.html">Vulnerabilities</a>
+<a href="/frontend/pages/identity.html">Identity</a>
+<a href="/frontend/pages/zero-trust.html">Zero Trust</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Investigate</span>
+<a href="/frontend/pages/endpoints.html">Endpoints</a>
+<a href="/frontend/pages/hunting.html">Threat Hunting</a>
+<a href="/frontend/pages/forensics.html">Forensics</a>
+<a href="/frontend/pages/cases.html">Cases</a>
+<a class="active" href="/frontend/pages/siem.html">SIEM</a>
+<a href="/frontend/pages/alerts.html">Alert Investigation</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Infrastructure</span>
+<a href="/frontend/pages/cloud.html">Cloud</a>
+<a href="/frontend/pages/kubernetes.html">Kubernetes</a>
+<a href="/frontend/pages/dlp.html">DLP</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Governance</span>
+<a href="/frontend/pages/recovery.html">Recovery</a>
+<a href="/frontend/pages/risk.html">Risk</a>
+<a href="/frontend/pages/compliance.html">Compliance</a>
+<a href="/frontend/pages/reports.html">Reports</a>
+</div>
+
+</div>
+</nav>
+
+
+<main class="siem-page">
+
+<section class="page-head">
+
+<div>
+<div class="eyebrow">SOC / SIEM</div>
+<h1>SIEM Investigation</h1>
+<p>
+Search normalized security telemetry, inspect event context and correlate evidence across the enterprise.
+</p>
+</div>
+
+<div class="actions">
+<button class="button" id="refreshButton">↻ Refresh</button>
+</div>
+
+</section>
+
+
+<section class="metrics">
+
+<div class="metric blue">
+<span>Loaded Events</span>
+<strong id="metricEvents">—</strong>
+</div>
+
+<div class="metric red">
+<span>Critical</span>
+<strong id="metricCritical">—</strong>
+</div>
+
+<div class="metric orange">
+<span>High</span>
+<strong id="metricHigh">—</strong>
+</div>
+
+<div class="metric yellow">
+<span>Authentication</span>
+<strong id="metricAuth">—</strong>
+</div>
+
+<div class="metric green">
+<span>Identity</span>
+<strong id="metricIdentity">—</strong>
+</div>
+
+<div class="metric">
+<span>Sources</span>
+<strong id="metricSources">—</strong>
+</div>
+
+</section>
+
+
+<section class="workspace">
+
+
+<section class="panel">
+
+<header class="panel-head">
+
+<div>
+<h2>Telemetry Search</h2>
+<p>Normalized event search and analyst filtering</p>
+</div>
+
+<div id="searchState" style="font-size:8px;color:#617b8c">
+Ready
+</div>
+
+</header>
+
+
+<div class="search-box">
+
+<div class="query-row">
+
+<input
+id="queryInput"
+placeholder="Search event UID, message, user, source IP, action..."
+>
+
+<button class="button primary" id="searchButton">
+Search
+</button>
+
+<button class="button" id="resetButton">
+Reset
+</button>
+
+</div>
+
+<div class="search-hint">
+Search is sent to the PHOENIX SIEM API. Additional filters below narrow event_type, severity, user and network context.
+</div>
+
+</div>
+
+
+<div class="filters">
+
+<input id="eventTypeFilter" placeholder="Event type">
+
+<select id="severityFilter">
+<option value="">All severity</option>
+<option value="critical">Critical</option>
+<option value="high">High</option>
+<option value="medium">Medium</option>
+<option value="low">Low</option>
+<option value="informational">Informational</option>
+</select>
+
+<input id="userFilter" placeholder="Username">
+
+<input id="sourceFilter" placeholder="Source IP">
+
+</div>
+
+
+<div class="table-container">
+
+<table>
+
+<thead>
+<tr>
+<th>Event</th>
+<th>Severity</th>
+<th>Type / Action</th>
+<th>User</th>
+<th>Source</th>
+<th>Time</th>
+</tr>
+</thead>
+
+<tbody id="eventRows">
+
+<tr>
+<td colspan="6">
+<div class="loading">
+Loading SIEM telemetry...
+</div>
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+
+<section class="panel detail">
+
+<div id="detailEmpty" class="detail-empty">
+Select a security event to inspect its normalized and raw telemetry.
+</div>
+
+
+<div id="detailContent" style="display:none">
+
+<header class="detail-head">
+
+<div class="eyebrow">EVENT INVESTIGATION</div>
+
+<div class="detail-title" id="detailTitle">
+Security Event
+</div>
+
+<div class="detail-uid" id="detailUid">
+—
+</div>
+
+<div class="detail-actions">
+
+<button class="button primary" id="correlateButton">
+Correlate Selected
+</button>
+
+</div>
+
+</header>
+
+
+<section class="section">
+
+<div class="section-title">
+Normalized Context
+</div>
+
+<div class="context">
+
+<div>Event UID</div>
+<div id="ctxUid">—</div>
+
+<div>Event Type</div>
+<div id="ctxType">—</div>
+
+<div>Category</div>
+<div id="ctxCategory">—</div>
+
+<div>Action</div>
+<div id="ctxAction">—</div>
+
+<div>Outcome</div>
+<div id="ctxOutcome">—</div>
+
+<div>Severity</div>
+<div id="ctxSeverity">—</div>
+
+<div>Username</div>
+<div id="ctxUser">—</div>
+
+<div>Hostname</div>
+<div id="ctxHost">—</div>
+
+<div>Source IP</div>
+<div id="ctxSource">—</div>
+
+<div>Destination IP</div>
+<div id="ctxDestination">—</div>
+
+<div>Timestamp</div>
+<div id="ctxTime">—</div>
+
+</div>
+
+<div class="message" id="ctxMessage">
+No event message.
+</div>
+
+</section>
+
+
+<section class="section">
+
+<div class="section-title">
+Normalized Data
+</div>
+
+<pre class="json" id="normalizedData">{}</pre>
+
+</section>
+
+
+<section class="section">
+
+<div class="section-title">
+Raw Event
+</div>
+
+<pre class="json" id="rawData">{}</pre>
+
+</section>
+
+
+<section class="section">
+
+<div class="section-title">
+Correlation Result
+</div>
+
+<div id="correlationResult">
+
+<div class="empty">
+Select an event and run correlation to analyze its evidence timeline.
+</div>
+
+</div>
+
+</section>
+
+</div>
+
+</section>
+
+</section>
+
+</main>
+
+</div>
+
+
+<div class="toast" id="toast"></div>
+
+
+<script src="/frontend/js/api.js"></script>
+<script src="/frontend/js/auth-guard.js"></script>
+<script src="/frontend/js/navigation.js"></script>
+
+<script>
+(() => {
+
+"use strict";
+
+
+const $ =
+id => document.getElementById(id);
+
+
+let events = [];
+let selectedEvent = null;
+
+
+function escapeHTML(value) {
+
+return String(value ?? "")
+.replace(
+/[&<>"']/g,
+char =>
+({
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#039;"
+}[char])
+);
+
+}
+
+
+function normalize(value) {
+
+return String(value ?? "")
+.trim()
+.toLowerCase();
+
+}
+
+
+function list(data) {
+
+if (Array.isArray(data)) {
+return data;
+}
+
+if (Array.isArray(data?.events)) {
+return data.events;
+}
+
+if (Array.isArray(data?.items)) {
+return data.items;
+}
+
+if (Array.isArray(data?.results)) {
+return data.results;
+}
+
+return [];
+
+}
+
+
+function formatDate(value) {
+
+if (!value) {
+return "—";
+}
+
+const date =
+new Date(value);
+
+if (Number.isNaN(date.getTime())) {
+return escapeHTML(value);
+}
+
+return date.toLocaleString(
+[],
+{
+month:"short",
+day:"2-digit",
+hour:"2-digit",
+minute:"2-digit",
+second:"2-digit"
+}
+);
+
+}
+
+
+function severityHTML(value) {
+
+const level =
+normalize(
+value || "informational"
+);
+
+return `
+<span class="sev ${escapeHTML(level)}">
+${escapeHTML(level)}
+</span>
+`;
+
+}
+
+
+function toast(message) {
+
+const element =
+$("toast");
+
+element.textContent =
+message;
+
+element.classList.add("show");
+
+setTimeout(
+() =>
+element.classList.remove("show"),
+2600
+);
+
+}
+
+
+function updateMetrics() {
+
+const critical =
+events.filter(
+event =>
+normalize(event.severity) === "critical"
+).length;
+
+const high =
+events.filter(
+event =>
+normalize(event.severity) === "high"
+).length;
+
+const auth =
+events.filter(
+event =>
+normalize(event.event_type) === "authentication"
+).length;
+
+const identity =
+events.filter(
+event =>
+normalize(event.category) === "identity"
+).length;
+
+const sources =
+new Set(
+events.map(
+event =>
+event.source_ip ||
+event.normalized_data?.source ||
+"unknown"
+)
+).size;
+
+
+$("metricEvents")
+.textContent =
+events.length;
+
+$("metricCritical")
+.textContent =
+critical;
+
+$("metricHigh")
+.textContent =
+high;
+
+$("metricAuth")
+.textContent =
+auth;
+
+$("metricIdentity")
+.textContent =
+identity;
+
+$("metricSources")
+.textContent =
+sources;
+
+}
+
+
+function renderEvents() {
+
+const tbody =
+$("eventRows");
+
+if (!events.length) {
+
+tbody.innerHTML = `
+<tr>
+<td colspan="6">
+<div class="empty">
+No telemetry matched the current search.
+</div>
+</td>
+</tr>
+`;
+
+return;
+
+}
+
+
+tbody.innerHTML =
+events.map(
+event => `
+
+<tr
+class="event-row ${
+selectedEvent &&
+Number(selectedEvent.id) ===
+Number(event.id)
+? "selected"
+: ""
+}"
+data-id="${escapeHTML(event.id)}"
+>
+
+<td>
+
+<div class="uid">
+${escapeHTML(
+event.event_uid ||
+`EVENT-${event.id}`
+)}
+</div>
+
+<div class="event-title">
+${escapeHTML(
+event.message ||
+event.action ||
+"Security event"
+)}
+</div>
+
+<div class="sub">
+${escapeHTML(
+event.hostname ||
+event.normalized_data?.hostname ||
+""
+)}
+</div>
+
+</td>
+
+<td>
+${severityHTML(
+event.severity
+)}
+</td>
+
+<td>
+
+${escapeHTML(
+event.event_type ||
+"—"
+)}
+
+<div class="sub">
+${escapeHTML(
+event.action ||
+"—"
+)}
+</div>
+
+</td>
+
+<td>
+${escapeHTML(
+event.username ||
+event.normalized_data?.username ||
+"—"
+)}
+</td>
+
+<td>
+${escapeHTML(
+event.source_ip ||
+event.normalized_data?.source_ip ||
+"—"
+)}
+</td>
+
+<td>
+${formatDate(
+event.event_time ||
+event.timestamp
+)}
+</td>
+
+</tr>
+
+`
+).join("");
+
+
+tbody
+.querySelectorAll(".event-row")
+.forEach(
+row =>
+row.addEventListener(
+"click",
+() =>
+openEvent(
+Number(row.dataset.id)
+)
+)
+);
+
+}
+
+
+async function searchEvents() {
+
+$("searchState")
+.textContent =
+"Searching...";
+
+
+const payload = {
+
+query:
+$("queryInput").value.trim() || null,
+
+event_type:
+$("eventTypeFilter").value.trim() || null,
+
+severity:
+$("severityFilter").value || null,
+
+username:
+$("userFilter").value.trim() || null,
+
+source_ip:
+$("sourceFilter").value.trim() || null,
+
+limit:200
+
+};
+
+
+try {
+
+const response =
+await PhoenixAPI.request(
+"/api/siem/search",
+{
+method:"POST",
+body:payload
+}
+);
+
+events =
+list(response);
+
+updateMetrics();
+renderEvents();
+
+$("searchState")
+.textContent =
+`${events.length} events`;
+
+if (events.length) {
+
+await openEvent(
+selectedEvent &&
+events.some(
+event =>
+Number(event.id) ===
+Number(selectedEvent.id)
+)
+? selectedEvent.id
+: events[0].id,
+false
+);
+
+}
+
+toast(
+`SIEM search returned ${events.length} events.`
+);
+
+} catch(error) {
+
+$("searchState")
+.textContent =
+"Search failed";
+
+toast(
+`SIEM search failed: ${error.message}`
+);
+
+}
+
+}
+
+
+async function openEvent(
+id,
+showMessage = true
+) {
+
+const event =
+events.find(
+item =>
+Number(item.id) ===
+Number(id)
+);
+
+if (!event) {
+return;
+}
+
+selectedEvent =
+event;
+
+renderEvents();
+
+
+$("detailEmpty")
+.style.display =
+"none";
+
+$("detailContent")
+.style.display =
+"block";
+
+
+const normalized =
+event.normalized_data ||
+{};
+
+$("detailTitle")
+.textContent =
+event.message ||
+event.action ||
+"Security Event";
+
+$("detailUid")
+.textContent =
+event.event_uid ||
+`EVENT-${event.id}`;
+
+
+$("ctxUid")
+.textContent =
+event.event_uid ||
+`EVENT-${event.id}`;
+
+$("ctxType")
+.textContent =
+event.event_type ||
+"—";
+
+$("ctxCategory")
+.textContent =
+event.category ||
+"—";
+
+$("ctxAction")
+.textContent =
+event.action ||
+"—";
+
+$("ctxOutcome")
+.textContent =
+normalized.outcome ||
+"—";
+
+$("ctxSeverity").innerHTML =
+severityHTML(
+event.severity
+);
+
+$("ctxUser")
+.textContent =
+event.username ||
+normalized.username ||
+"—";
+
+$("ctxHost")
+.textContent =
+event.hostname ||
+normalized.hostname ||
+"—";
+
+$("ctxSource")
+.textContent =
+event.source_ip ||
+normalized.source_ip ||
+"—";
+
+$("ctxDestination")
+.textContent =
+event.destination_ip ||
+normalized.destination_ip ||
+"—";
+
+$("ctxTime")
+.textContent =
+formatDate(
+event.event_time ||
+normalized.timestamp
+);
+
+$("ctxMessage").textContent =
+event.message ||
+"No event message.";
+
+
+$("normalizedData")
+.textContent =
+JSON.stringify(
+normalized,
+null,
+2
+);
+
+$("rawData")
+.textContent =
+JSON.stringify(
+event.raw_event || {},
+null,
+2
+);
+
+$("correlationResult")
+.innerHTML = `
+<div class="empty">
+Select "Correlate Selected" to analyze this event.
+</div>
+`;
+
+if (showMessage) {
+toast("Event selected.");
+}
+
+}
+
+
+async function correlateSelected() {
+
+if (!selectedEvent) {
+
+toast(
+"Select an event first."
+);
+
+return;
+
+}
+
+
+$("correlationResult")
+.innerHTML = `
+<div class="loading">
+Running SIEM correlation...
+</div>
+`;
+
+
+try {
+
+const response =
+await PhoenixAPI.request(
+"/api/siem/correlate",
+{
+method:"POST",
+body:{
+event_ids:[
+selectedEvent.id
+]
+}
+}
+);
+
+
+const findings =
+response?.findings ||
+[];
+
+$("correlationResult")
+.innerHTML = `
+
+<div class="result">
+
+<div class="result-head">
+Correlation Summary
+</div>
+
+<div class="result-body">
+
+Highest severity:
+<strong>
+${escapeHTML(
+response?.highest_severity ||
+"informational"
+)}
+</strong>
+
+<br>
+
+Confidence:
+<strong>
+${escapeHTML(
+response?.confidence ??
+"—"
+)}
+</strong>
+
+<br>
+
+Evidence events:
+<strong>
+${escapeHTML(
+response?.event_count ??
+selectedEvent.id
+)}
+</strong>
+
+</div>
+
+</div>
+
+${
+findings.length
+?
+findings
+.map(
+finding =>
+`
+<div class="result">
+
+<div class="result-head">
+${escapeHTML(
+finding.title ||
+finding.type ||
+"Correlation finding"
+)}
+</div>
+
+<div class="result-body">
+${escapeHTML(
+finding.description ||
+JSON.stringify(finding)
+)}
+</div>
+
+</div>
+`
+)
+.join("")
+:
+`
+<div class="result">
+<div class="result-body">
+No additional correlation findings were returned.
+</div>
+</div>
+`
+}
+
+`;
+
+toast("SIEM correlation completed.");
+
+} catch(error) {
+
+$("correlationResult")
+.innerHTML = `
+<div class="empty">
+Correlation failed: ${escapeHTML(error.message)}
+</div>
+`;
+
+toast(
+`Correlation failed: ${error.message}`
+);
+
+}
+
+}
+
+
+function resetSearch() {
+
+$("queryInput").value = "";
+$("eventTypeFilter").value = "";
+$("severityFilter").value = "";
+$("userFilter").value = "";
+$("sourceFilter").value = "";
+
+searchEvents();
+
+}
+
+
+$("searchButton")
+.addEventListener(
+"click",
+searchEvents
+);
+
+$("resetButton")
+.addEventListener(
+"click",
+resetSearch
+);
+
+$("refreshButton")
+.addEventListener(
+"click",
+searchEvents
+);
+
+$("refreshHeader")
+.addEventListener(
+"click",
+searchEvents
+);
+
+$("correlateButton")
+.addEventListener(
+"click",
+correlateSelected
+);
+
+
+$("queryInput")
+.addEventListener(
+"keydown",
+event => {
+
+if (event.key === "Enter") {
+searchEvents();
+}
+
+}
+);
+
+
+
+$("globalSearch")
+.addEventListener(
+"keydown",
+event => {
+
+if (event.key === "Enter") {
+
+const value =
+event.target.value.trim();
+
+if (value) {
+
+$("queryInput")
+.value =
+value;
+
+searchEvents();
+
+}
+
+}
+
+}
+);
+
+
+loadSearch();
+
+
+async function loadSearch() {
+
+try {
+
+const response =
+await PhoenixAPI.request(
+"/api/siem/search",
+{
+method:"POST",
+body:{
+limit:200
+}
+}
+);
+
+events =
+list(response);
+
+updateMetrics();
+renderEvents();
+
+$("searchState")
+.textContent =
+`${events.length} events`;
+
+if (events.length) {
+await openEvent(
+events[0].id,
+false
+);
+}
+
+} catch(error) {
+
+events = [];
+
+updateMetrics();
+renderEvents();
+
+$("searchState")
+.textContent =
+"API unavailable";
+
+toast(
+`SIEM unavailable: ${error.message}`
+);
+
+}
+
+}
+
+
+setInterval(
+loadSearch,
+30000
+);
+
+})();
+</script>
+
+</body>
+</html>

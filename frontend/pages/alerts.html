@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PHOENIX | Alert Investigation</title>
+<link rel="stylesheet" href="/frontend/css/phoenix.css">
+    <link rel="stylesheet" href="/frontend/css/phoenix-theme.css?v=2">
+    
+
+<style>
+.alert-page{max-width:1780px;margin:auto;padding:24px 26px 42px}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:16px}
+.eyebrow{font-size:8px;font-weight:800;letter-spacing:.16em;color:#4c9aca;margin-bottom:5px}
+.page-head h1{margin:0;font-size:25px}
+.page-head p{margin:6px 0 0;color:#718997;font-size:10px}
+.actions{display:flex;gap:7px}
+.button{height:34px;padding:0 12px;border:1px solid var(--border);border-radius:6px;background:#0b1d2b;color:#a8bdc9;font-size:9px;font-weight:700;cursor:pointer}
+.button:hover{background:#102b3d;border-color:#315f79;color:#e0edf3}
+.button.primary{background:#0d3550;border-color:#276f9f;color:#9dd7ff}
+.button.danger{background:#28171b;border-color:#63333d;color:#ff7d8b}
+
+.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin-bottom:11px}
+.metric{min-height:69px;padding:11px 13px;border:1px solid var(--border);border-radius:7px;background:#0b1d2b}
+.metric span{display:block;color:#688292;font-size:7px;text-transform:uppercase;letter-spacing:.08em}
+.metric strong{display:block;margin-top:8px;color:#d6e3e8;font-size:20px}
+.metric.blue strong{color:#68bdff}
+.metric.red strong{color:#ff6579}
+.metric.orange strong{color:#ffab6e}
+.metric.yellow strong{color:#e6cb69}
+.metric.green strong{color:#61d7a7}
+
+.layout{display:grid;grid-template-columns:minmax(580px,1.12fr) minmax(450px,.88fr);gap:11px}
+.panel{border:1px solid var(--border);border-radius:8px;background:#0b1d2b;overflow:hidden}
+.panel-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border)}
+.panel-head h2{margin:0;font-size:11px}
+.panel-head p{margin:3px 0 0;color:#637e8e;font-size:8px}
+
+.toolbar{display:grid;grid-template-columns:1fr 125px 125px 145px auto;gap:7px;padding:11px;background:#091a28;border-bottom:1px solid var(--border)}
+.toolbar input,.toolbar select{height:33px;box-sizing:border-box;border:1px solid var(--border);border-radius:5px;background:#0b2030;color:#c2d1d8;padding:0 9px;font-size:8px;outline:none}
+.toolbar input:focus,.toolbar select:focus{border-color:#327fa9}
+
+.table-container{overflow:auto;max-height:680px}
+table{width:100%;border-collapse:collapse}
+th{position:sticky;top:0;z-index:2;background:#091a28;padding:8px 9px;border-bottom:1px solid #25465b;text-align:left;color:#617c8d;font-size:7px;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+td{padding:10px 9px;border-bottom:1px solid rgba(25,57,77,.5);color:#a9bdc6;font-size:8px;vertical-align:top}
+.alert-row{cursor:pointer}
+.alert-row:hover{background:#102b3d}
+.alert-row.selected{background:#103044;box-shadow:inset 2px 0 #38aaff}
+.uid{font:7px ui-monospace,monospace;color:#4caef0}
+.title{margin-top:4px;color:#d3dfe5;font-size:9px;font-weight:700}
+.sub{margin-top:3px;color:#617b8b;font-size:7px}
+.sev{display:inline-flex;padding:4px 6px;border-radius:4px;font-size:7px;text-transform:uppercase}
+.sev.critical{border:1px solid #6a3440;background:#29171c;color:#ff697b}
+.sev.high{border:1px solid #65432f;background:#2a1e18;color:#ffad70}
+.sev.medium{border:1px solid #5b502d;background:#292417;color:#e5cb69}
+.sev.low{border:1px solid #294b61;background:#10293a;color:#91aec0}
+.sev.informational{border:1px solid #294b61;background:#10242f;color:#8da6b3}
+.state{display:inline-flex;padding:4px 6px;border-radius:4px;border:1px solid #294b61;background:#10293a;color:#9db7c6;font-size:7px;text-transform:uppercase}
+.state.new{border-color:#65432f;background:#2a1e18;color:#ffad70}
+.state.investigating{border-color:#5b502d;background:#292417;color:#e5cb69}
+.state.resolved,.state.closed{border-color:#275845;background:#0d2821;color:#61d7a7}
+
+.detail{min-height:760px}
+.detail-head{padding:15px;border-bottom:1px solid var(--border);background:#091b2a}
+.detail-top{display:flex;justify-content:space-between;gap:12px}
+.detail-title{font-size:17px;color:#d9e5ea;margin:3px 0}
+.detail-uid{font:8px ui-monospace,monospace;color:#4caef0}
+.badges{display:flex;gap:6px;flex-wrap:wrap}
+.detail-actions{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+
+.section{border-bottom:1px solid var(--border)}
+.section-title{padding:10px 13px;border-bottom:1px solid var(--border);font-size:9px;font-weight:750;color:#cfdde3}
+.context{display:grid;grid-template-columns:125px 1fr}
+.context div{padding:8px 10px;border-bottom:1px solid rgba(25,57,77,.45);font-size:8px;word-break:break-word}
+.context div:nth-child(odd){color:#627c8c}
+.context div:nth-child(even){color:#c2d2da}
+
+.description{padding:12px;color:#8299a6;font-size:8px;line-height:1.65}
+.items{max-height:280px;overflow:auto}
+.item{padding:9px 12px;border-bottom:1px solid rgba(25,57,77,.45)}
+.item:hover{background:#0d2535}
+.item-top{display:flex;justify-content:space-between;gap:10px}
+.item-name{font-size:8px;color:#cddae0;font-weight:700}
+.item-time{margin-top:3px;color:#587486;font:7px ui-monospace,monospace}
+.item-detail{margin-top:4px;color:#708997;font-size:7px;line-height:1.5}
+
+.ioc{display:flex;justify-content:space-between;gap:10px;padding:9px 12px;border-bottom:1px solid rgba(25,57,77,.45)}
+.ioc-value{font:8px ui-monospace,monospace;color:#68bfff;word-break:break-all}
+.ioc-meta{margin-top:3px;color:#667f8e;font-size:7px}
+
+.finding{margin:10px;padding:10px;border:1px solid #294a5e;border-radius:5px;background:#081a26}
+.finding-title{font-size:8px;font-weight:700;color:#d0dde3}
+.finding-text{margin-top:4px;font-size:7px;line-height:1.55;color:#718997}
+
+.empty{padding:35px;text-align:center;color:#5e7788;font-size:8px}
+.loading{padding:35px;text-align:center;color:#607a8b;font-size:8px}
+
+.toast{position:fixed;right:20px;bottom:20px;z-index:200;padding:10px 13px;border:1px solid #2b5c76;border-radius:6px;background:#0a2232;color:#bcd2dd;font-size:8px;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s}
+.toast.show{opacity:1;transform:translateY(0)}
+
+@media(max-width:1250px){
+.metrics{grid-template-columns:repeat(3,1fr)}
+.layout{grid-template-columns:1fr}
+}
+@media(max-width:850px){
+.toolbar{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+.alert-page{padding:17px 10px 30px}
+.page-head{flex-direction:column;align-items:flex-start}
+.metrics{grid-template-columns:repeat(2,1fr)}
+.toolbar{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header class="topbar">
+
+<a class="brand" href="/frontend/" style="text-decoration:none">
+<div class="brand-symbol"><span>P</span></div>
+<div class="brand-text">
+<strong>PHOENIX</strong>
+<span>Autonomous Enterprise Cyber Defense Platform</span>
+</div>
+</a>
+
+<div class="global-search">
+<span class="search-icon">⌕</span>
+<input id="globalSearch" type="search" placeholder="Search events, incidents, assets, IOCs...">
+<kbd>/</kbd>
+</div>
+
+<div class="header-actions">
+
+<button class="header-button" id="refreshHeader">↻</button>
+
+<button class="header-button">
+♢
+<span class="notification-dot"></span>
+</button>
+
+<div class="header-divider"></div>
+
+<div class="analyst-menu">
+<div class="analyst-avatar">A</div>
+<div class="analyst-info">
+<strong>Analyst</strong>
+<span>SOC Analyst</span>
+</div>
+</div>
+
+</div>
+</header>
+
+
+<nav class="primary-nav">
+
+<a class="nav-item" href="/frontend/">Security Operations</a>
+<a class="nav-item" href="/frontend/pages/incidents.html">Incidents</a>
+<a class="nav-item active" href="/frontend/pages/detections.html">Detections</a>
+<a class="nav-item" href="/frontend/pages/intelligence.html">Threat Intelligence</a>
+<a class="nav-item" href="/frontend/pages/assets.html">Assets</a>
+<a class="nav-item" href="/frontend/pages/response.html">Response</a>
+
+<button class="nav-more" id="moreButton">
+More <span>⌄</span>
+</button>
+
+<div class="more-menu" id="moreMenu">
+
+<div class="more-column">
+<span class="menu-heading">Protect</span>
+<a href="/frontend/pages/vulnerabilities.html">Vulnerabilities</a>
+<a href="/frontend/pages/identity.html">Identity</a>
+<a href="/frontend/pages/zero-trust.html">Zero Trust</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Investigate</span>
+<a href="/frontend/pages/endpoints.html">Endpoints</a>
+<a href="/frontend/pages/hunting.html">Threat Hunting</a>
+<a href="/frontend/pages/forensics.html">Forensics</a>
+<a href="/frontend/pages/cases.html">Cases</a>
+<a href="/frontend/pages/siem.html">SIEM</a>
+<a class="active" href="/frontend/pages/alerts.html">Alert Investigation</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Infrastructure</span>
+<a href="/frontend/pages/cloud.html">Cloud</a>
+<a href="/frontend/pages/kubernetes.html">Kubernetes</a>
+<a href="/frontend/pages/dlp.html">DLP</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Governance</span>
+<a href="/frontend/pages/recovery.html">Recovery</a>
+<a href="/frontend/pages/risk.html">Risk</a>
+<a href="/frontend/pages/compliance.html">Compliance</a>
+<a href="/frontend/pages/reports.html">Reports</a>
+</div>
+
+</div>
+</nav>
+
+
+<main class="alert-page">
+
+<section class="page-head">
+
+<div>
+<div class="eyebrow">SOC / DETECTION OPERATIONS</div>
+<h1>Alert Investigation</h1>
+<p>
+Investigate detection alerts, enrich their context and route validated threats into incident response.
+</p>
+</div>
+
+<div class="actions">
+<button class="button" id="refreshButton">↻ Refresh</button>
+</div>
+
+</section>
+
+
+<section class="metrics">
+
+<div class="metric blue">
+<span>Total Alerts</span>
+<strong id="metricTotal">—</strong>
+</div>
+
+<div class="metric red">
+<span>Critical</span>
+<strong id="metricCritical">—</strong>
+</div>
+
+<div class="metric orange">
+<span>High</span>
+<strong id="metricHigh">—</strong>
+</div>
+
+<div class="metric yellow">
+<span>New</span>
+<strong id="metricNew">—</strong>
+</div>
+
+<div class="metric green">
+<span>High Confidence</span>
+<strong id="metricConfidence">—</strong>
+</div>
+
+<div class="metric">
+<span>Incident Linked</span>
+<strong id="metricLinked">—</strong>
+</div>
+
+</section>
+
+
+<section class="layout">
+
+<section class="panel">
+
+<header class="panel-head">
+
+<div>
+<h2>Alert Queue</h2>
+<p>Detection output requiring analyst triage</p>
+</div>
+
+<div id="queueState" style="font-size:8px;color:#617b8c">
+Loading
+</div>
+
+</header>
+
+
+<div class="toolbar">
+
+<input
+id="searchInput"
+placeholder="Search alert, UID, title, description..."
+>
+
+<select id="severityFilter">
+<option value="">All severity</option>
+<option value="critical">Critical</option>
+<option value="high">High</option>
+<option value="medium">Medium</option>
+<option value="low">Low</option>
+</select>
+
+<select id="statusFilter">
+<option value="">All status</option>
+<option value="new">New</option>
+<option value="investigating">Investigating</option>
+<option value="resolved">Resolved</option>
+<option value="closed">Closed</option>
+</select>
+
+<select id="sortSelect">
+<option value="severity">Severity</option>
+<option value="recent">Most recent</option>
+<option value="confidence">Confidence</option>
+</select>
+
+<button class="button" id="clearFilters">Clear</button>
+
+</div>
+
+
+<div class="table-container">
+
+<table>
+
+<thead>
+<tr>
+<th>Alert</th>
+<th>Severity</th>
+<th>Confidence</th>
+<th>Status</th>
+<th>Last Seen</th>
+</tr>
+</thead>
+
+<tbody id="alertRows">
+
+<tr>
+<td colspan="5">
+<div class="loading">
+Loading alert queue...
+</div>
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+
+<section class="panel detail">
+
+<div id="detailEmpty" class="empty" style="min-height:720px;display:grid;place-items:center">
+Select an alert to begin investigation.
+</div>
+
+
+<div id="detailContent" style="display:none">
+
+<header class="detail-head">
+
+<div class="detail-top">
+
+<div>
+<div class="eyebrow">ALERT INVESTIGATION</div>
+<div class="detail-title" id="detailTitle">Security Alert</div>
+<div class="detail-uid" id="detailUid">—</div>
+</div>
+
+<div class="badges">
+<span id="detailSeverity"></span>
+<span id="detailStatus"></span>
+</div>
+
+</div>
+
+
+<div class="detail-actions">
+
+<button class="button primary" id="enrichButton">
+Refresh Enrichment
+</button>
+
+<button class="button" id="createIncidentButton">
+Create Incident
+</button>
+
+</div>
+
+</header>
+
+
+<section class="section">
+
+<div class="section-title">
+Alert Context
+</div>
+
+<div class="context">
+
+<div>Alert UID</div>
+<div id="ctxUid">—</div>
+
+<div>Detection Rule</div>
+<div id="ctxRule">—</div>
+
+<div>Severity</div>
+<div id="ctxSeverity">—</div>
+
+<div>Confidence</div>
+<div id="ctxConfidence">—</div>
+
+<div>Status</div>
+<div id="ctxStatus">—</div>
+
+<div>First Seen</div>
+<div id="ctxFirstSeen">—</div>
+
+<div>Last Seen</div>
+<div id="ctxLastSeen">—</div>
+
+</div>
+
+<div class="description" id="ctxDescription">
+No alert description available.
+</div>
+
+</section>
+
+
+<section class="section">
+
+<div class="section-title">
+Asset Context
+</div>
+
+<div id="assetContext">
+<div class="empty">No asset context loaded.</div>
+</div>
+
+</section>
+
+
+<section class="section">
+
+<div class="section-title">
+Threat Intelligence
+</div>
+
+<div id="tiContext">
+<div class="empty">No intelligence matches returned.</div>
+</div>
+
+</section>
+
+
+<section class="section">
+
+<div class="section-title">
+Related Security Events
+</div>
+
+<div class="items" id="eventContext">
+<div class="empty">No linked security events returned.</div>
+</div>
+
+</section>
+
+
+<section class="section">
+
+<div class="section-title">
+Analyst Assessment
+</div>
+
+<div id="assessment">
+<div class="finding">
+<div class="finding-title">Investigation guidance</div>
+<div class="finding-text">
+Validate the detection evidence, review affected assets and identities, inspect intelligence matches and create an incident when the alert represents a confirmed security event.
+</div>
+</div>
+</div>
+
+</section>
+
+</div>
+
+</section>
+
+</section>
+
+</main>
+
+</div>
+
+
+<div class="toast" id="toast"></div>
+
+
+<script src="/frontend/js/api.js"></script>
+<script src="/frontend/js/auth-guard.js"></script>
+<script src="/frontend/js/navigation.js"></script>
+
+<script>
+(() => {
+
+"use strict";
+
+
+const $ =
+id => document.getElementById(id);
+
+
+let alerts = [];
+let selectedAlert = null;
+let selectedContext = null;
+
+
+function escapeHTML(value) {
+
+return String(value ?? "")
+.replace(
+/[&<>"']/g,
+char =>
+({
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#039;"
+}[char])
+);
+
+}
+
+
+function normalize(value) {
+
+return String(value ?? "")
+.trim()
+.toLowerCase();
+
+}
+
+
+function list(data, keys = []) {
+
+if (Array.isArray(data)) {
+return data;
+}
+
+if (Array.isArray(data?.items)) {
+return data.items;
+}
+
+for (const key of keys) {
+
+if (Array.isArray(data?.[key])) {
+return data[key];
+}
+
+}
+
+return [];
+
+}
+
+
+function formatDate(value) {
+
+if (!value) {
+return "—";
+}
+
+const date =
+new Date(value);
+
+if (Number.isNaN(date.getTime())) {
+return escapeHTML(value);
+}
+
+return date.toLocaleString(
+[],
+{
+month:"short",
+day:"2-digit",
+hour:"2-digit",
+minute:"2-digit"
+}
+);
+
+}
+
+
+function severityHTML(value) {
+
+const level =
+normalize(
+value || "informational"
+);
+
+return `
+<span class="sev ${escapeHTML(level)}">
+${escapeHTML(level)}
+</span>
+`;
+
+}
+
+
+function statusHTML(value) {
+
+const state =
+normalize(
+value || "unknown"
+);
+
+return `
+<span class="state ${escapeHTML(state)}">
+${escapeHTML(value || "unknown")}
+</span>
+`;
+
+}
+
+
+function toast(message) {
+
+const element =
+$("toast");
+
+element.textContent =
+message;
+
+element.classList.add("show");
+
+setTimeout(
+() =>
+element.classList.remove("show"),
+2700
+);
+
+}
+
+
+function updateMetrics() {
+
+const critical =
+alerts.filter(
+item =>
+normalize(item.severity) === "critical"
+).length;
+
+const high =
+alerts.filter(
+item =>
+normalize(item.severity) === "high"
+).length;
+
+const fresh =
+alerts.filter(
+item =>
+normalize(item.status) === "new"
+).length;
+
+const highConfidence =
+alerts.filter(
+item =>
+Number(item.confidence || 0) >= 80
+).length;
+
+
+$("metricTotal")
+.textContent =
+alerts.length;
+
+$("metricCritical")
+.textContent =
+critical;
+
+$("metricHigh")
+.textContent =
+high;
+
+$("metricNew")
+.textContent =
+fresh;
+
+$("metricConfidence")
+.textContent =
+highConfidence;
+
+}
+
+
+function filteredAlerts() {
+
+const query =
+normalize(
+$("searchInput").value
+);
+
+const severity =
+normalize(
+$("severityFilter").value
+);
+
+const status =
+normalize(
+$("statusFilter").value
+);
+
+let items =
+alerts.filter(
+alert => {
+
+const text =
+[
+alert.alert_uid,
+alert.title,
+alert.description,
+alert.severity,
+alert.status,
+alert.confidence
+]
+.join(" ")
+.toLowerCase();
+
+if (
+query &&
+!text.includes(query)
+) {
+return false;
+}
+
+if (
+severity &&
+normalize(alert.severity) !== severity
+) {
+return false;
+}
+
+if (
+status &&
+normalize(alert.status) !== status
+) {
+return false;
+}
+
+return true;
+
+}
+);
+
+
+const sort =
+$("sortSelect").value;
+
+
+if (sort === "confidence") {
+
+items.sort(
+(a,b) =>
+Number(b.confidence || 0) -
+Number(a.confidence || 0)
+);
+
+} else if (sort === "recent") {
+
+items.sort(
+(a,b) =>
+new Date(
+b.last_seen_at ||
+b.updated_at ||
+0
+) -
+new Date(
+a.last_seen_at ||
+a.updated_at ||
+0
+)
+);
+
+} else {
+
+const rank = {
+critical:4,
+high:3,
+medium:2,
+low:1,
+informational:0
+};
+
+items.sort(
+(a,b) =>
+(rank[normalize(b.severity)] || 0) -
+(rank[normalize(a.severity)] || 0)
+);
+
+}
+
+return items;
+
+}
+
+
+function renderQueue() {
+
+const tbody =
+$("alertRows");
+
+const items =
+filteredAlerts();
+
+
+if (!items.length) {
+
+tbody.innerHTML = `
+<tr>
+<td colspan="5">
+<div class="empty">
+${
+alerts.length
+? "No alerts match the current filters."
+: "No alerts are currently available."
+}
+</div>
+</td>
+</tr>
+`;
+
+return;
+
+}
+
+
+tbody.innerHTML =
+items.map(
+alert => `
+
+<tr
+class="alert-row ${
+selectedAlert &&
+Number(selectedAlert.id) ===
+Number(alert.id)
+? "selected"
+: ""
+}"
+data-id="${escapeHTML(alert.id)}"
+>
+
+<td>
+
+<div class="uid">
+${escapeHTML(
+alert.alert_uid ||
+`ALERT-${alert.id}`
+)}
+</div>
+
+<div class="title">
+${escapeHTML(
+alert.title ||
+"Security alert"
+)}
+</div>
+
+<div class="sub">
+${escapeHTML(
+alert.description || ""
+)}
+</div>
+
+</td>
+
+<td>
+${severityHTML(
+alert.severity
+)}
+</td>
+
+<td>
+
+<strong>
+${escapeHTML(
+alert.confidence ?? "—"
+)}%
+</strong>
+
+</td>
+
+<td>
+${statusHTML(
+alert.status
+)}
+</td>
+
+<td>
+${formatDate(
+alert.last_seen_at ||
+alert.updated_at
+)}
+</td>
+
+</tr>
+
+`
+).join("");
+
+
+tbody
+.querySelectorAll(".alert-row")
+.forEach(
+row =>
+row.addEventListener(
+"click",
+() =>
+openAlert(
+Number(row.dataset.id)
+)
+)
+);
+
+}
+
+
+async function loadAlerts() {
+
+$("queueState")
+.textContent =
+"Loading...";
+
+try {
+
+const response =
+await PhoenixAPI.alerts();
+
+alerts =
+list(
+response,
+["alerts","items"]
+);
+
+updateMetrics();
+renderQueue();
+
+$("metricLinked")
+.textContent =
+"—";
+
+$("queueState")
+.textContent =
+`${alerts.length} alerts`;
+
+if (selectedAlert) {
+
+const current =
+alerts.find(
+item =>
+Number(item.id) ===
+Number(selectedAlert.id)
+);
+
+if (current) {
+
+await openAlert(
+current.id,
+false
+);
+
+}
+
+} else if (alerts.length) {
+
+await openAlert(
+[...alerts]
+.sort(
+(a,b) =>
+Number(b.confidence || 0) -
+Number(a.confidence || 0)
+)[0].id,
+false
+);
+
+}
+
+} catch(error) {
+
+alerts = [];
+
+updateMetrics();
+renderQueue();
+
+$("queueState")
+.textContent =
+"API unavailable";
+
+toast(
+`Alert API failed: ${error.message}`
+);
+
+}
+
+}
+
+
+async function openAlert(
+id,
+showMessage = true
+) {
+
+const alert =
+alerts.find(
+item =>
+Number(item.id) ===
+Number(id)
+);
+
+if (!alert) {
+return;
+}
+
+
+selectedAlert =
+alert;
+
+renderQueue();
+
+
+$("detailEmpty")
+.style.display =
+"none";
+
+$("detailContent")
+.style.display =
+"block";
+
+
+$("detailTitle")
+.textContent =
+alert.title ||
+"Security Alert";
+
+$("detailUid")
+.textContent =
+alert.alert_uid ||
+`ALERT-${alert.id}`;
+
+$("detailSeverity")
+.innerHTML =
+severityHTML(
+alert.severity
+);
+
+$("detailStatus")
+.innerHTML =
+statusHTML(
+alert.status
+);
+
+
+$("ctxUid")
+.textContent =
+alert.alert_uid ||
+`ALERT-${alert.id}`;
+
+$("ctxRule").textContent =
+alert.detection_rule_id ??
+"Not linked";
+
+$("ctxSeverity")
+innerHTML =
+severityHTML(
+alert.severity
+);
+
+$("ctxConfidence")
+.textContent =
+`${alert.confidence ?? "—"}%`;
+
+$("ctxStatus")
+.innerHTML =
+statusHTML(
+alert.status
+);
+
+$("ctxFirstSeen")
+.textContent =
+formatDate(
+alert.first_seen_at
+);
+
+$("ctxLastSeen")
+.textContent =
+formatDate(
+alert.last_seen_at
+);
+
+$("ctxDescription").textContent =
+alert.description ||
+"No alert description available.";
+
+
+$("assetContext")
+.innerHTML = `
+<div class="loading">
+Loading enrichment context...
+</div>
+`;
+
+$("tiContext")
+.innerHTML = `
+<div class="loading">
+Loading threat intelligence...
+</div>
+`;
+
+$("eventContext")
+.innerHTML = `
+<div class="loading">
+Loading related security events...
+</div>
+`;
+
+
+try {
+
+const response =
+await PhoenixAPI.request(
+`/api/alerts/${id}/context`
+);
+
+selectedContext =
+response;
+
+renderContext(
+response
+);
+
+if (showMessage) {
+toast("Alert enrichment loaded.");
+}
+
+} catch(error) {
+
+selectedContext =
+null;
+
+$("assetContext")
+.innerHTML = `
+<div class="empty">
+Enrichment unavailable: ${escapeHTML(error.message)}
+</div>
+`;
+
+$("tiContext")
+.innerHTML = `
+<div class="empty">
+Threat intelligence context unavailable.
+</div>
+`;
+
+$("eventContext")
+.innerHTML = `
+<div class="empty">
+Related event context unavailable.
+</div>
+`;
+
+if (showMessage) {
+
+toast(
+`Alert context failed: ${error.message}`
+);
+
+}
+
+}
+
+}
+
+
+function renderContext(data) {
+
+const asset =
+data?.asset ||
+data?.asset_context ||
+null;
+
+const intelligence =
+list(
+data?.intelligence_matches,
+[
+"intelligence_matches",
+"matches",
+"threat_intelligence"
+]
+);
+
+const events =
+list(
+data?.events,
+[
+"events",
+"security_events"
+]
+);
+
+
+if (asset) {
+
+$("assetContext")
+.innerHTML = `
+
+<div class="context">
+
+<div>Asset UID</div>
+<div>${escapeHTML(
+asset.asset_uid ||
+asset.id ||
+"—"
+)}</div>
+
+<div>Hostname</div>
+<div>${escapeHTML(
+asset.hostname ||
+"—"
+)}</div>
+
+<div>Type</div>
+<div>${escapeHTML(
+asset.asset_type ||
+"—"
+)}</div>
+
+<div>IP Address</div>
+<div>${escapeHTML(
+asset.ip_address ||
+"—"
+)}</div>
+
+<div>Environment</div>
+<div>${escapeHTML(
+asset.environment ||
+"—"
+)}</div>
+
+<div>Criticality</div>
+<div>${escapeHTML(
+asset.criticality ||
+"—"
+)}</div>
+
+<div>Owner</div>
+<div>${escapeHTML(
+asset.owner ||
+"—"
+)}</div>
+
+<div>Status</div>
+<div>${escapeHTML(
+asset.status ||
+"—"
+)}</div>
+
+</div>
+
+`;
+
+} else {
+
+$("assetContext")
+.innerHTML = `
+<div class="empty">
+No asset is directly associated with this alert.
+</div>
+`;
+
+}
+
+
+if (!intelligence.length) {
+
+$("tiContext")
+.innerHTML = `
+<div class="empty">
+No threat-intelligence matches were returned for this alert.
+</div>
+`;
+
+} else {
+
+$("tiContext")
+.innerHTML =
+intelligence
+.map(
+match => {
+
+const indicator =
+match.indicator ||
+match.threat_indicator ||
+match;
+
+return `
+
+<div class="ioc">
+
+<div>
+
+<div class="ioc-value">
+${escapeHTML(
+indicator.value ||
+indicator.indicator ||
+indicator.observable ||
+"Unknown indicator"
+)}
+</div>
+
+<div class="ioc-meta">
+Type:
+${escapeHTML(
+indicator.indicator_type ||
+indicator.type ||
+"—"
+)}
+ · Confidence:
+${escapeHTML(
+indicator.confidence ?? "—"
+)}
+</div>
+
+</div>
+
+${severityHTML(
+indicator.severity ||
+match.severity ||
+"informational"
+)}
+
+</div>
+
+`;
+
+}
+)
+.join("");
+
+}
+
+
+if (!events.length) {
+
+$("eventContext")
+.innerHTML = `
+<div class="empty">
+No security events are linked to this alert.
+</div>
+`;
+
+} else {
+
+$("eventContext")
+.innerHTML =
+events
+.map(
+event => {
+
+const normalized =
+event.normalized_data ||
+{};
+
+return `
+
+<div class="item">
+
+<div class="item-top">
+
+<div class="item-name">
+${escapeHTML(
+event.event_uid ||
+`EVENT-${event.id}`
+)}
+</div>
+
+${severityHTML(
+event.severity
+)}
+
+</div>
+
+<div class="item-time">
+${formatDate(
+event.event_time ||
+event.timestamp
+)}
+ ·
+${escapeHTML(
+event.event_type ||
+"event"
+)}
+ ·
+${escapeHTML(
+event.action ||
+"—"
+)}
+</div>
+
+<div class="item-detail">
+
+User:
+${escapeHTML(
+event.username ||
+"—"
+)}
+
+ · Source:
+${escapeHTML(
+event.source_ip ||
+"—"
+)}
+
+ · Outcome:
+${escapeHTML(
+normalized.outcome ||
+"—"
+)}
+
+</div>
+
+</div>
+
+`;
+
+}
+)
+.join("");
+
+}
+
+
+const matchCount =
+intelligence.length;
+
+$("metricLinked")
+.textContent =
+matchCount;
+
+}
+
+
+async function refreshEnrichment() {
+
+if (!selectedAlert) {
+
+toast("Select an alert first.");
+
+return;
+
+}
+
+await openAlert(
+selectedAlert.id
+);
+
+}
+
+
+async function createIncident() {
+
+if (!selectedAlert) {
+
+toast("Select an alert first.");
+
+return;
+
+}
+
+
+if (
+!confirm(
+`Create an incident from ${selectedAlert.alert_uid || "this alert"}?`
+)
+) {
+return;
+}
+
+
+try {
+
+const response =
+await PhoenixAPI.request(
+`/api/alerts/${selectedAlert.id}/create-incident`,
+{
+method:"POST"
+}
+);
+
+toast(
+response?.message ||
+"Incident created from alert."
+);
+
+} catch(error) {
+
+toast(
+`Incident creation failed: ${error.message}`
+);
+
+}
+
+}
+
+
+$("refreshButton")
+.addEventListener(
+"click",
+loadAlerts
+);
+
+$("refreshHeader")
+.addEventListener(
+"click",
+loadAlerts
+);
+
+$("enrichButton")
+.addEventListener(
+"click",
+refreshEnrichment
+);
+
+$("createIncidentButton")
+.addEventListener(
+"click",
+createIncident
+);
+
+
+$("searchInput")
+.addEventListener(
+"input",
+renderQueue
+);
+
+$("severityFilter")
+.addEventListener(
+"change",
+renderQueue
+);
+
+$("statusFilter")
+.addEventListener(
+"change",
+renderQueue
+);
+
+$("sortSelect")
+.addEventListener(
+"change",
+renderQueue
+);
+
+
+$("clearFilters")
+.addEventListener(
+"click",
+() => {
+
+$("searchInput").value = "";
+$("severityFilter").value = "";
+$("statusFilter").value = "";
+$("sortSelect").value = "severity";
+
+renderQueue();
+
+}
+);
+
+
+
+$("globalSearch")
+.addEventListener(
+"keydown",
+event => {
+
+if (
+event.key === "Enter"
+) {
+
+const value =
+event.target.value.trim();
+
+if (value) {
+
+$("searchInput")
+.value =
+value;
+
+renderQueue();
+
+}
+
+}
+});
+
+
+loadAlerts();
+
+
+setInterval(
+loadAlerts,
+30000
+);
+
+})();
+</script>
+
+</body>
+</html>

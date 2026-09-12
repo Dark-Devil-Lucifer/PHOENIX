@@ -1,0 +1,2189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PHOENIX | Incidents</title>
+<link rel="stylesheet" href="/frontend/css/phoenix.css">
+<link rel="stylesheet" href="/frontend/css/dashboard-polish.css?v=2">
+<link rel="stylesheet" href="/frontend/css/phoenix-theme.css?v=3">
+    
+
+<style>
+.incident-page{max-width:1780px;margin:auto;padding:24px 26px 42px}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:16px}
+.eyebrow{font-size:8px;font-weight:800;letter-spacing:.16em;color:#4c9aca;margin-bottom:5px}
+.page-head h1{margin:0;font-size:25px}
+.page-head p{margin:6px 0 0;color:#718997;font-size:10px}
+.actions{display:flex;gap:7px}
+.button{height:34px;padding:0 12px;border:1px solid var(--border);border-radius:6px;background:#0b1d2b;color:#a8bdc9;font-size:9px;font-weight:700;cursor:pointer}
+.button:hover{background:#102b3d;border-color:#315f79;color:#e0edf3}
+.button.primary{background:#0d3550;border-color:#276f9f;color:#9dd7ff}
+.button.danger{border-color:#67333d;background:#27171b;color:#ff8190}
+
+.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin-bottom:11px}
+.metric{min-height:69px;padding:11px 13px;border:1px solid var(--border);border-radius:7px;background:#0b1d2b}
+.metric span{display:block;color:#688292;font-size:7px;text-transform:uppercase;letter-spacing:.08em}
+.metric strong{display:block;margin-top:8px;color:#d6e3e8;font-size:20px}
+.metric.blue strong{color:#68bdff}
+.metric.red strong{color:#ff6579}
+.metric.orange strong{color:#ffab6e}
+.metric.yellow strong{color:#e6cb69}
+.metric.green strong{color:#61d7a7}
+
+.layout{display:grid;grid-template-columns:minmax(560px,1.15fr) minmax(430px,.85fr);gap:11px}
+.panel{border:1px solid var(--border);border-radius:8px;background:#0b1d2b;overflow:hidden}
+.panel-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border)}
+.panel-head h2{margin:0;font-size:11px}
+.panel-head p{margin:3px 0 0;color:#637e8e;font-size:8px}
+
+.toolbar{display:grid;grid-template-columns:1fr 135px 135px auto;gap:7px;padding:11px;background:#091a28;border-bottom:1px solid var(--border)}
+.toolbar input,.toolbar select{height:33px;border:1px solid var(--border);border-radius:5px;background:#0b2030;color:#c2d1d8;padding:0 9px;font-size:8px;outline:none}
+.toolbar input:focus,.toolbar select:focus{border-color:#327fa9}
+
+.table-container{overflow:auto;max-height:650px}
+table{width:100%;border-collapse:collapse}
+th{position:sticky;top:0;z-index:2;background:#091a28;padding:8px 9px;border-bottom:1px solid #25465b;text-align:left;color:#617c8d;font-size:7px;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+td{padding:10px 9px;border-bottom:1px solid rgba(25,57,77,.5);color:#a9bdc6;font-size:8px;vertical-align:top}
+.incident-row{cursor:pointer}
+.incident-row:hover{background:#102b3d}
+.incident-row.selected{background:#103044;box-shadow:inset 2px 0 #38aaff}
+.uid{font:7px ui-monospace,monospace;color:#4caef0}
+.title{margin-top:4px;color:#d3dfe5;font-size:9px;font-weight:700}
+.sub{margin-top:3px;color:#617b8b;font-size:7px}
+.sev{display:inline-flex;padding:4px 6px;border-radius:4px;font-size:7px;text-transform:uppercase}
+.sev.critical{border:1px solid #6a3440;background:#29171c;color:#ff697b}
+.sev.high{border:1px solid #65432f;background:#2a1e18;color:#ffad70}
+.sev.medium{border:1px solid #5b502d;background:#292417;color:#e5cb69}
+.sev.low{border:1px solid #294b61;background:#10293a;color:#91aec0}
+.state{display:inline-flex;padding:4px 6px;border-radius:4px;border:1px solid #294b61;background:#10293a;color:#9db7c6;font-size:7px;text-transform:uppercase}
+.state.open,.state.new,.state.acknowledged{border-color:#65432f;background:#2a1e18;color:#ffad70}
+.state.investigating,.state.contained{border-color:#5b502d;background:#292417;color:#e5cb69}
+.state.resolved,.state.closed{border-color:#275845;background:#0d2821;color:#61d7a7}
+
+.detail{min-height:720px}
+.detail-head{padding:15px;border-bottom:1px solid var(--border);background:#091b2a}
+.detail-title-row{display:flex;justify-content:space-between;gap:12px}
+.detail-title{font-size:17px;color:#d9e5ea;margin:3px 0}
+.detail-uid{font:8px ui-monospace,monospace;color:#4caef0}
+.detail-badges{display:flex;gap:6px;align-items:flex-start;flex-wrap:wrap}
+.detail-actions{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+
+.detail-section{border-bottom:1px solid var(--border)}
+.section-title{padding:10px 13px;border-bottom:1px solid var(--border);font-size:9px;font-weight:750;color:#cfdde3}
+.context{display:grid;grid-template-columns:120px 1fr}
+.context div{padding:8px 10px;border-bottom:1px solid rgba(25,57,77,.45);font-size:8px;word-break:break-word}
+.context div:nth-child(odd){color:#627c8c}
+.context div:nth-child(even){color:#c2d2da}
+
+.description{padding:12px;color:#8299a6;font-size:8px;line-height:1.65}
+.event-list,.alert-list{max-height:300px;overflow:auto}
+.event,.alert{padding:9px 12px;border-bottom:1px solid rgba(25,57,77,.45)}
+.event:hover,.alert:hover{background:#0d2535}
+.event-top{display:flex;justify-content:space-between;gap:10px}
+.event-name,.alert-name{font-size:8px;color:#cddae0;font-weight:700}
+.event-time,.alert-time{margin-top:3px;color:#587486;font:7px ui-monospace,monospace}
+.event-detail,.alert-detail{margin-top:4px;color:#708997;font-size:7px;line-height:1.45}
+
+.timeline{max-height:390px;overflow:auto}
+.timeline-item{position:relative;padding:10px 13px 10px 30px;border-bottom:1px solid rgba(25,57,77,.45)}
+.timeline-item:before{content:"";position:absolute;left:14px;top:14px;width:5px;height:5px;border:1px solid #3d8bb5;border-radius:50%;background:#0b1d2b}
+.timeline-item:after{content:"";position:absolute;left:16px;top:20px;bottom:-10px;width:1px;background:#24465b}
+.timeline-item:last-child:after{display:none}
+.timeline-name{font-size:8px;color:#cddae0;font-weight:700}
+.timeline-time{margin-top:3px;color:#587486;font:7px ui-monospace,monospace}
+.timeline-description{margin-top:4px;color:#708997;font-size:7px;line-height:1.5}
+
+.empty{padding:35px;text-align:center;color:#5e7788;font-size:8px}
+.loading{padding:35px;text-align:center;color:#607a8b;font-size:8px}
+
+.toast{position:fixed;right:20px;bottom:20px;z-index:200;padding:10px 13px;border:1px solid #2b5c76;border-radius:6px;background:#0a2232;color:#bcd2dd;font-size:8px;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s}
+.toast.show{opacity:1;transform:translateY(0)}
+
+@media(max-width:1250px){
+.metrics{grid-template-columns:repeat(3,1fr)}
+.layout{grid-template-columns:1fr}
+}
+@media(max-width:850px){
+.toolbar{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+.incident-page{padding:17px 10px 30px}
+.page-head{flex-direction:column;align-items:flex-start}
+.metrics{grid-template-columns:repeat(2,1fr)}
+.toolbar{grid-template-columns:1fr}
+}
+
+/* =========================================================
+   PHOENIX INCIDENTS — OBSIDIAN EMBER OVERRIDE
+   ========================================================= */
+
+.incident-page {
+    max-width: 1780px;
+    padding: 28px 30px 48px;
+}
+
+.page-head {
+    margin-bottom: 20px;
+}
+
+.eyebrow {
+    color: var(--phoenix-ember) !important;
+    font-size: 10px !important;
+    letter-spacing: .13em !important;
+}
+
+.page-head h1 {
+    color: var(--phoenix-text) !important;
+    font-size: 28px !important;
+    line-height: 1.15;
+}
+
+.page-head p {
+    color: var(--phoenix-muted) !important;
+    font-size: 13px !important;
+    line-height: 1.5;
+}
+
+.actions {
+    gap: 8px;
+}
+
+.button {
+    height: 36px;
+    padding: 0 14px;
+    border: 1px solid var(--phoenix-border) !important;
+    border-radius: 6px;
+    background: var(--phoenix-surface-2) !important;
+    color: var(--phoenix-text-soft) !important;
+    font-size: 12px !important;
+}
+
+.button:hover {
+    background: var(--phoenix-surface-3) !important;
+    border-color: var(--phoenix-border-active) !important;
+    color: var(--phoenix-text) !important;
+}
+
+.button.primary {
+    background: var(--phoenix-ember-soft) !important;
+    border-color: var(--phoenix-border-active) !important;
+    color: var(--phoenix-ember-light) !important;
+}
+
+.button.primary:hover {
+    background: rgba(217,119,69,.16) !important;
+}
+
+.button.danger {
+    border-color: rgba(227,107,107,.30) !important;
+    background: rgba(227,107,107,.08) !important;
+    color: var(--phoenix-danger) !important;
+}
+
+
+/* METRICS */
+
+.metrics {
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.metric {
+    min-height: 88px;
+    padding: 14px 16px;
+    border: 1px solid var(--phoenix-border) !important;
+    border-radius: 8px;
+    background: var(--phoenix-surface) !important;
+    box-shadow: 0 5px 20px rgba(0,0,0,.16);
+}
+
+.metric span {
+    color: var(--phoenix-muted) !important;
+    font-size: 10px !important;
+    letter-spacing: .07em;
+}
+
+.metric strong {
+    margin-top: 9px;
+    color: var(--phoenix-text) !important;
+    font-size: 25px !important;
+}
+
+.metric.blue strong {
+    color: var(--phoenix-info) !important;
+}
+
+.metric.red strong {
+    color: var(--phoenix-danger) !important;
+}
+
+.metric.orange strong {
+    color: var(--phoenix-ember-light) !important;
+}
+
+.metric.yellow strong {
+    color: var(--phoenix-warning) !important;
+}
+
+.metric.green strong {
+    color: var(--phoenix-success) !important;
+}
+
+
+/* PANELS */
+
+.layout {
+    gap: 14px;
+}
+
+.panel {
+    border: 1px solid var(--phoenix-border) !important;
+    border-radius: 9px;
+    background: var(--phoenix-surface) !important;
+    box-shadow: 0 8px 28px rgba(0,0,0,.18);
+}
+
+.panel-head {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--phoenix-border) !important;
+    background: var(--phoenix-surface-2);
+}
+
+.panel-head h2 {
+    color: var(--phoenix-text) !important;
+    font-size: 13px !important;
+}
+
+.panel-head p {
+    color: var(--phoenix-muted) !important;
+    font-size: 11px !important;
+}
+
+
+/* TOOLBAR */
+
+.toolbar {
+    padding: 12px;
+    gap: 8px;
+    background: var(--phoenix-bg-2) !important;
+    border-bottom: 1px solid var(--phoenix-border) !important;
+}
+
+.toolbar input,
+.toolbar select {
+    height: 36px;
+    border: 1px solid var(--phoenix-border) !important;
+    border-radius: 6px;
+    background: var(--phoenix-surface-2) !important;
+    color: var(--phoenix-text-soft) !important;
+    font-size: 12px !important;
+}
+
+.toolbar input::placeholder {
+    color: var(--phoenix-muted-2) !important;
+}
+
+.toolbar input:focus,
+.toolbar select:focus {
+    border-color: var(--phoenix-border-active) !important;
+    box-shadow: 0 0 0 2px rgba(217,119,69,.06);
+}
+
+
+/* TABLE */
+
+th {
+    background: var(--phoenix-bg-2) !important;
+    border-bottom: 1px solid var(--phoenix-border) !important;
+    color: var(--phoenix-muted) !important;
+    font-size: 10px !important;
+    padding: 10px 11px;
+}
+
+td {
+    border-bottom: 1px solid var(--phoenix-border-soft) !important;
+    color: var(--phoenix-text-soft) !important;
+    font-size: 12px !important;
+    padding: 12px 11px;
+}
+
+.incident-row:hover {
+    background: var(--phoenix-ember-glow) !important;
+}
+
+.incident-row.selected {
+    background: rgba(217,119,69,.075) !important;
+    box-shadow: inset 3px 0 var(--phoenix-ember) !important;
+}
+
+.uid {
+    color: var(--phoenix-ember-light) !important;
+    font-size: 10px !important;
+}
+
+.title {
+    color: var(--phoenix-text) !important;
+    font-size: 13px !important;
+}
+
+.sub {
+    color: var(--phoenix-muted) !important;
+    font-size: 10px !important;
+}
+
+
+/* SEVERITY */
+
+.sev {
+    padding: 4px 7px;
+    font-size: 10px !important;
+    font-weight: 700;
+}
+
+.sev.critical {
+    border-color: rgba(227,107,107,.32) !important;
+    background: rgba(227,107,107,.09) !important;
+    color: var(--phoenix-danger) !important;
+}
+
+.sev.high {
+    border-color: rgba(217,119,69,.34) !important;
+    background: rgba(217,119,69,.09) !important;
+    color: var(--phoenix-ember-light) !important;
+}
+
+.sev.medium {
+    border-color: rgba(230,184,92,.30) !important;
+    background: rgba(230,184,92,.08) !important;
+    color: var(--phoenix-warning) !important;
+}
+
+.sev.low {
+    border-color: var(--phoenix-border) !important;
+    background: var(--phoenix-surface-2) !important;
+    color: var(--phoenix-info) !important;
+}
+
+
+/* STATUS */
+
+.state {
+    font-size: 10px !important;
+    padding: 4px 7px;
+    border-color: var(--phoenix-border) !important;
+    background: var(--phoenix-surface-2) !important;
+    color: var(--phoenix-text-soft) !important;
+}
+
+.state.open,
+.state.new,
+.state.acknowledged {
+    border-color: rgba(217,119,69,.30) !important;
+    background: rgba(217,119,69,.08) !important;
+    color: var(--phoenix-ember-light) !important;
+}
+
+.state.investigating,
+.state.contained {
+    border-color: rgba(230,184,92,.28) !important;
+    background: rgba(230,184,92,.07) !important;
+    color: var(--phoenix-warning) !important;
+}
+
+.state.resolved,
+.state.closed {
+    border-color: rgba(95,207,145,.28) !important;
+    background: rgba(95,207,145,.07) !important;
+    color: var(--phoenix-success) !important;
+}
+
+
+/* DETAIL */
+
+.detail {
+    min-height: 720px;
+}
+
+.detail-head {
+    padding: 18px;
+    border-bottom: 1px solid var(--phoenix-border) !important;
+    background: var(--phoenix-surface-2) !important;
+}
+
+.detail-title {
+    color: var(--phoenix-text) !important;
+    font-size: 19px !important;
+    line-height: 1.3;
+}
+
+.detail-uid {
+    color: var(--phoenix-ember-light) !important;
+    font-size: 10px !important;
+}
+
+.detail-actions {
+    margin-top: 14px;
+}
+
+.detail-section {
+    border-bottom: 1px solid var(--phoenix-border) !important;
+}
+
+.section-title {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--phoenix-border) !important;
+    background: rgba(255,255,255,.012);
+    color: var(--phoenix-text) !important;
+    font-size: 11px !important;
+    letter-spacing: .035em;
+}
+
+.context div {
+    border-bottom: 1px solid var(--phoenix-border-soft) !important;
+    font-size: 11px !important;
+}
+
+.context div:nth-child(odd) {
+    color: var(--phoenix-muted) !important;
+}
+
+.context div:nth-child(even) {
+    color: var(--phoenix-text-soft) !important;
+}
+
+.description {
+    padding: 14px 15px;
+    color: var(--phoenix-text-soft) !important;
+    font-size: 12px !important;
+    line-height: 1.65;
+}
+
+
+/* EVENTS / ALERTS / TIMELINE */
+
+.event,
+.alert,
+.timeline-item {
+    border-bottom: 1px solid var(--phoenix-border-soft) !important;
+}
+
+.event:hover,
+.alert:hover {
+    background: var(--phoenix-ember-glow) !important;
+}
+
+.event-name,
+.alert-name,
+.timeline-name {
+    color: var(--phoenix-text) !important;
+    font-size: 11px !important;
+}
+
+.event-time,
+.alert-time,
+.timeline-time {
+    color: var(--phoenix-muted-2) !important;
+    font-size: 9px !important;
+}
+
+.event-detail,
+.alert-detail,
+.timeline-description {
+    color: var(--phoenix-muted) !important;
+    font-size: 10px !important;
+}
+
+.timeline-item:before {
+    border-color: var(--phoenix-ember) !important;
+    background: var(--phoenix-surface) !important;
+}
+
+.timeline-item:after {
+    background: var(--phoenix-border) !important;
+}
+
+
+/* EMPTY / TOAST */
+
+.empty,
+.loading {
+    color: var(--phoenix-muted) !important;
+    font-size: 12px !important;
+}
+
+.toast {
+    border-color: var(--phoenix-border-active) !important;
+    background: var(--phoenix-surface-2) !important;
+    color: var(--phoenix-text) !important;
+    font-size: 12px !important;
+}
+
+
+/* MORE MENU */
+
+.more-menu {
+    background: rgba(15,13,11,.99) !important;
+    border-color: var(--phoenix-border) !important;
+}
+
+
+/* PHOENIX INCIDENTS — FINAL HEADER / READABILITY PASS */
+
+.incident-page {
+    position: relative;
+    z-index: 1;
+}
+
+.incident-page .page-head h1 {
+    font-size: 28px !important;
+}
+
+.incident-page .page-head p {
+    font-size: 13px !important;
+}
+
+.incident-page .metric strong {
+    font-size: 25px !important;
+}
+
+.incident-page .metric span {
+    font-size: 10px !important;
+}
+
+.incident-page .panel-head h2 {
+    font-size: 13px !important;
+}
+
+.incident-page .panel-head p {
+    font-size: 11px !important;
+}
+
+.incident-page .toolbar input,
+.incident-page .toolbar select {
+    font-size: 12px !important;
+}
+
+.incident-page th {
+    font-size: 10px !important;
+}
+
+.incident-page td {
+    font-size: 12px !important;
+}
+
+.incident-page .title {
+    font-size: 13px !important;
+}
+
+.incident-page .sub {
+    font-size: 10px !important;
+}
+
+.incident-page .sev,
+.incident-page .state {
+    font-size: 10px !important;
+}
+
+.incident-page .section-title {
+    font-size: 11px !important;
+}
+
+.incident-page .context div {
+    font-size: 11px !important;
+}
+
+.incident-page .description {
+    font-size: 12px !important;
+}
+
+.incident-page .event-name,
+.incident-page .alert-name,
+.incident-page .timeline-name {
+    font-size: 11px !important;
+}
+
+.incident-page .event-detail,
+.incident-page .alert-detail,
+.incident-page .timeline-description {
+    font-size: 10px !important;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header class="topbar">
+
+<a class="brand" href="/frontend/" style="text-decoration:none">
+<div class="brand-symbol"><span>P</span></div>
+<div class="brand-text">
+<strong>PHOENIX</strong>
+<span>Autonomous Enterprise Cyber Defense Platform</span>
+</div>
+</a>
+
+<div class="global-search">
+<span class="search-icon">⌕</span>
+<input id="globalSearch" type="search" placeholder="Search events, incidents, assets, IOCs...">
+<kbd>/</kbd>
+</div>
+
+<div class="header-actions">
+
+<button class="header-button" id="refreshHeader">↻</button>
+
+<button class="header-button">
+♢
+<span class="notification-dot"></span>
+</button>
+
+<div class="header-divider"></div>
+
+<div class="analyst-menu">
+<div class="analyst-avatar">A</div>
+<div class="analyst-info">
+<strong>Analyst</strong>
+<span>SOC Analyst</span>
+</div>
+</div>
+
+</div>
+</header>
+
+
+<nav class="primary-nav">
+
+<a class="nav-item" href="/frontend/">Security Operations</a>
+<a class="nav-item active" href="/frontend/pages/incidents.html">Incidents</a>
+<a class="nav-item" href="/frontend/pages/detections.html">Detections</a>
+<a class="nav-item" href="/frontend/pages/intelligence.html">Threat Intelligence</a>
+<a class="nav-item" href="/frontend/pages/assets.html">Assets</a>
+<a class="nav-item" href="/frontend/pages/response.html">Response</a>
+
+<button class="nav-more" id="moreButton">
+More <span>⌄</span>
+</button>
+
+<div class="more-menu" id="moreMenu">
+
+<div class="more-column">
+<span class="menu-heading">Protect</span>
+<a href="/frontend/pages/vulnerabilities.html">Vulnerabilities</a>
+<a href="/frontend/pages/identity.html">Identity</a>
+<a href="/frontend/pages/zero-trust.html">Zero Trust</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Investigate</span>
+<a href="/frontend/pages/endpoints.html">Endpoints</a>
+<a href="/frontend/pages/hunting.html">Threat Hunting</a>
+<a href="/frontend/pages/forensics.html">Forensics</a>
+<a href="/frontend/pages/cases.html">Cases</a>
+<a href="/frontend/pages/siem.html">SIEM</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Infrastructure</span>
+<a href="/frontend/pages/cloud.html">Cloud</a>
+<a href="/frontend/pages/kubernetes.html">Kubernetes</a>
+<a href="/frontend/pages/dlp.html">DLP</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Governance</span>
+<a href="/frontend/pages/recovery.html">Recovery</a>
+<a href="/frontend/pages/risk.html">Risk</a>
+<a href="/frontend/pages/compliance.html">Compliance</a>
+<a href="/frontend/pages/reports.html">Reports</a>
+</div>
+
+</div>
+
+</nav>
+
+
+<main class="incident-page">
+
+<section class="page-head">
+
+<div>
+
+<div class="eyebrow">SOC / INCIDENT RESPONSE</div>
+
+<h1>Incident Investigation</h1>
+
+<p>
+Investigate correlated security activity, manage incident state and maintain an auditable response timeline.
+</p>
+
+</div>
+
+<div class="actions">
+
+<button class="button" id="refreshButton">
+↻ Refresh
+</button>
+
+<button class="button primary" id="focusQueue">
+Investigation Queue
+</button>
+
+</div>
+
+</section>
+
+
+<section class="metrics">
+
+<div class="metric blue">
+<span>Total Incidents</span>
+<strong id="metricTotal">—</strong>
+</div>
+
+<div class="metric red">
+<span>Critical</span>
+<strong id="metricCritical">—</strong>
+</div>
+
+<div class="metric orange">
+<span>High</span>
+<strong id="metricHigh">—</strong>
+</div>
+
+<div class="metric yellow">
+<span>Open</span>
+<strong id="metricOpen">—</strong>
+</div>
+
+<div class="metric green">
+<span>Contained</span>
+<strong id="metricContained">—</strong>
+</div>
+
+<div class="metric">
+<span>Resolved</span>
+<strong id="metricResolved">—</strong>
+</div>
+
+</section>
+
+
+<section class="layout">
+
+
+<section class="panel" id="incidentQueue">
+
+<header class="panel-head">
+
+<div>
+<h2>Incident Queue</h2>
+<p>Prioritized investigations requiring analyst attention</p>
+</div>
+
+<div id="queueState" style="font-size:8px;color:#617b8c">
+Loading
+</div>
+
+</header>
+
+
+<div class="toolbar">
+
+<input id="searchInput" placeholder="Search incident, UID, title, description...">
+
+<select id="severityFilter">
+<option value="">All severity</option>
+<option value="critical">Critical</option>
+<option value="high">High</option>
+<option value="medium">Medium</option>
+<option value="low">Low</option>
+</select>
+
+<select id="statusFilter">
+<option value="">All status</option>
+</select>
+
+<button class="button" id="clearFilters">
+Clear
+</button>
+
+</div>
+
+
+<div class="table-container">
+
+<table>
+
+<thead>
+<tr>
+<th>Incident</th>
+<th>Severity</th>
+<th>Status</th>
+<th>Priority</th>
+<th>Detected</th>
+</tr>
+</thead>
+
+<tbody id="incidentRows">
+
+<tr>
+<td colspan="5">
+<div class="loading">
+Loading incident queue...
+</div>
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+
+<section class="panel detail">
+
+<div id="detailEmpty" class="empty" style="min-height:680px;display:grid;place-items:center">
+Select an incident to begin investigation.
+</div>
+
+
+<div id="detailContent" style="display:none">
+
+
+<header class="detail-head">
+
+<div class="detail-title-row">
+
+<div>
+
+<div class="eyebrow">
+ACTIVE INVESTIGATION
+</div>
+
+<div class="detail-title" id="detailTitle">
+Incident
+</div>
+
+<div class="detail-uid" id="detailUid">
+—
+</div>
+
+</div>
+
+<div class="detail-badges">
+
+<span id="detailSeverity"></span>
+<span id="detailStatus"></span>
+
+</div>
+
+</div>
+
+
+<div class="detail-actions">
+
+<button class="button" id="ackButton">
+Acknowledge
+</button>
+
+<button class="button" id="containButton">
+Contain
+</button>
+
+<button class="button primary" id="resolveButton">
+Resolve
+</button>
+
+</div>
+
+</header>
+
+
+<section class="detail-section">
+
+<div class="section-title">
+Incident Context
+</div>
+
+<div class="context">
+
+<div>Incident UID</div>
+<div id="ctxUid">—</div>
+
+<div>Severity</div>
+<div id="ctxSeverity">—</div>
+
+<div>Status</div>
+<div id="ctxStatus">—</div>
+
+<div>Priority</div>
+<div id="ctxPriority">—</div>
+
+<div>Assigned To</div>
+<div id="ctxAssigned">—</div>
+
+<div>Detected</div>
+<div id="ctxDetected">—</div>
+
+<div>Contained</div>
+<div id="ctxContained">—</div>
+
+<div>Resolved</div>
+<div id="ctxResolved">—</div>
+
+</div>
+
+<div class="description" id="ctxDescription">
+No incident description recorded.
+</div>
+
+</section>
+
+
+<section class="detail-section">
+
+<div class="section-title">
+Linked Alerts
+</div>
+
+<div class="alert-list" id="alertList">
+
+<div class="empty">
+Loading linked alerts...
+</div>
+
+</div>
+
+</section>
+
+
+<section class="detail-section">
+
+<div class="section-title">
+Security Evidence
+</div>
+
+<div class="event-list" id="eventList">
+
+<div class="empty">
+Loading correlated events...
+</div>
+
+</div>
+
+</section>
+
+
+<section class="detail-section">
+
+<div class="section-title">
+Incident Timeline
+</div>
+
+<div class="timeline" id="timeline">
+
+<div class="empty">
+Loading investigation timeline...
+</div>
+
+</div>
+
+</section>
+
+</div>
+
+</section>
+
+</section>
+
+</main>
+
+</div>
+
+
+<div class="toast" id="toast"></div>
+
+
+<script src="/frontend/js/api.js"></script>
+<script src="/frontend/js/auth-guard.js"></script>
+<script src="/frontend/js/navigation.js"></script>
+
+<script>
+(() => {
+
+"use strict";
+
+const $ =
+id => document.getElementById(id);
+
+let incidents = [];
+let selectedIncident = null;
+let investigation = null;
+
+
+function escapeHTML(value) {
+
+return String(value ?? "")
+.replace(
+/[&<>"']/g,
+char =>
+({
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#039;"
+}[char])
+);
+
+}
+
+
+function normalize(value) {
+
+return String(value ?? "")
+.trim()
+.toLowerCase();
+
+}
+
+
+function list(data, keys = []) {
+
+if (Array.isArray(data)) {
+return data;
+}
+
+if (Array.isArray(data?.items)) {
+return data.items;
+}
+
+for (const key of keys) {
+
+if (Array.isArray(data?.[key])) {
+return data[key];
+}
+
+}
+
+return [];
+
+}
+
+
+function formatDate(value) {
+
+if (!value) {
+return "—";
+}
+
+const date =
+new Date(value);
+
+if (Number.isNaN(date.getTime())) {
+return escapeHTML(value);
+}
+
+return date.toLocaleString(
+[],
+{
+month:"short",
+day:"2-digit",
+hour:"2-digit",
+minute:"2-digit"
+}
+);
+
+}
+
+
+function severityHTML(value) {
+
+const level =
+normalize(
+value || "informational"
+);
+
+return `
+<span class="sev ${escapeHTML(level)}">
+${escapeHTML(level)}
+</span>
+`;
+
+}
+
+
+function stateHTML(value) {
+
+const state =
+normalize(
+value || "unknown"
+);
+
+return `
+<span class="state ${escapeHTML(state)}">
+${escapeHTML(value || "unknown")}
+</span>
+`;
+
+}
+
+
+function toast(message) {
+
+const element =
+$("toast");
+
+element.textContent =
+message;
+
+element.classList.add("show");
+
+setTimeout(
+() =>
+element.classList.remove("show"),
+2700
+);
+
+}
+
+
+function setConnection(text) {
+
+$("queueState")
+.textContent =
+text;
+
+}
+
+
+async function loadIncidents() {
+
+setConnection("Loading...");
+
+try {
+
+const response =
+await PhoenixAPI.incidents();
+
+incidents =
+list(
+response,
+["incidents","items"]
+);
+
+updateMetrics();
+populateStatusFilter();
+renderQueue();
+
+setConnection(
+`${incidents.length} incidents`
+);
+
+if (
+selectedIncident
+) {
+
+const stillExists =
+incidents.find(
+item =>
+Number(item.id) ===
+Number(selectedIncident.id)
+);
+
+if (stillExists) {
+await openIncident(
+stillExists.id,
+false
+);
+}
+
+} else if (incidents.length) {
+
+await openIncident(
+[...incidents]
+.sort(
+(a,b) =>
+Number(b.priority || 0) -
+Number(a.priority || 0)
+)[0].id,
+false
+);
+
+}
+
+} catch(error) {
+
+incidents = [];
+
+updateMetrics();
+renderQueue();
+
+setConnection("API unavailable");
+
+toast(
+`Incident API failed: ${error.message}`
+);
+
+}
+
+}
+
+
+function updateMetrics() {
+
+const critical =
+incidents.filter(
+item =>
+normalize(item.severity) === "critical"
+).length;
+
+const high =
+incidents.filter(
+item =>
+normalize(item.severity) === "high"
+).length;
+
+const open =
+incidents.filter(
+item =>
+![
+"resolved",
+"closed"
+].includes(
+normalize(item.status)
+)
+).length;
+
+const contained =
+incidents.filter(
+item =>
+normalize(item.status) === "contained"
+).length;
+
+const resolved =
+incidents.filter(
+item =>
+[
+"resolved",
+"closed"
+].includes(
+normalize(item.status)
+)
+).length;
+
+
+$("metricTotal")
+.textContent =
+incidents.length;
+
+$("metricCritical")
+.textContent =
+critical;
+
+$("metricHigh")
+.textContent =
+high;
+
+$("metricOpen")
+.textContent =
+open;
+
+$("metricContained")
+.textContent =
+contained;
+
+$("metricResolved")
+.textContent =
+resolved;
+
+}
+
+
+function populateStatusFilter() {
+
+const select =
+$("statusFilter");
+
+const current =
+select.value;
+
+const statuses =
+[
+...new Set(
+incidents
+.map(
+item =>
+item.status
+)
+.filter(Boolean)
+)
+].sort();
+
+
+select.innerHTML =
+`<option value="">All status</option>`;
+
+statuses.forEach(
+status => {
+
+const option =
+document.createElement("option");
+
+option.value =
+status;
+
+option.textContent =
+status;
+
+select.appendChild(
+option
+);
+
+}
+);
+
+select.value =
+current;
+
+}
+
+
+function filteredIncidents() {
+
+const query =
+normalize(
+$("searchInput").value
+);
+
+const severity =
+normalize(
+$("severityFilter").value
+);
+
+const status =
+normalize(
+$("statusFilter").value
+);
+
+
+return incidents.filter(
+incident => {
+
+const searchable =
+[
+incident.incident_uid,
+incident.title,
+incident.description,
+incident.status,
+incident.severity,
+incident.priority
+]
+.join(" ")
+.toLowerCase();
+
+
+if (
+query &&
+!searchable.includes(query)
+) {
+return false;
+}
+
+if (
+severity &&
+normalize(incident.severity) !== severity
+) {
+return false;
+}
+
+if (
+status &&
+normalize(incident.status) !== status
+) {
+return false;
+}
+
+return true;
+
+}
+);
+
+}
+
+
+function renderQueue() {
+
+const tbody =
+$("incidentRows");
+
+const items =
+[...filteredIncidents()]
+.sort(
+(a,b) =>
+Number(b.priority || 0) -
+Number(a.priority || 0)
+);
+
+
+if (!items.length) {
+
+tbody.innerHTML = `
+<tr>
+<td colspan="5">
+<div class="empty">
+${
+incidents.length
+? "No incidents match the current filters."
+: "No incidents are currently available."
+}
+</div>
+</td>
+</tr>
+`;
+
+return;
+
+}
+
+
+tbody.innerHTML =
+items
+.map(
+incident => `
+
+<tr
+class="incident-row ${
+selectedIncident &&
+Number(selectedIncident.id) ===
+Number(incident.id)
+? "selected"
+: ""
+}"
+data-id="${escapeHTML(incident.id)}"
+>
+
+<td>
+
+<div class="uid">
+${escapeHTML(
+incident.incident_uid ||
+`INC-${incident.id}`
+)}
+</div>
+
+<div class="title">
+${escapeHTML(
+incident.title ||
+"Security incident"
+)}
+</div>
+
+</td>
+
+<td>
+${severityHTML(
+incident.severity
+)}
+</td>
+
+<td>
+${stateHTML(
+incident.status
+)}
+</td>
+
+<td>
+
+<strong>
+${escapeHTML(
+incident.priority ?? "—"
+)}
+</strong>
+
+<div class="sub">
+Priority score
+</div>
+
+</td>
+
+<td>
+
+${formatDate(
+incident.detected_at ||
+incident.created_at
+)}
+
+</td>
+
+</tr>
+
+`
+)
+.join("");
+
+
+tbody
+.querySelectorAll(".incident-row")
+.forEach(
+row =>
+row.addEventListener(
+"click",
+() =>
+openIncident(
+Number(row.dataset.id)
+)
+)
+);
+
+}
+
+
+async function openIncident(
+id,
+showMessage = true
+) {
+
+const base =
+incidents.find(
+item =>
+Number(item.id) ===
+Number(id)
+);
+
+if (!base) {
+return;
+}
+
+
+selectedIncident =
+base;
+
+renderQueue();
+
+
+$("detailEmpty")
+.style.display =
+"none";
+
+$("detailContent")
+.style.display =
+"block";
+
+
+$("detailTitle")
+.textContent =
+base.title ||
+"Security Incident";
+
+$("detailUid")
+.textContent =
+base.incident_uid ||
+`INC-${base.id}`;
+
+$("detailSeverity")
+.innerHTML =
+severityHTML(
+base.severity
+);
+
+$("detailStatus")
+.innerHTML =
+stateHTML(
+base.status
+);
+
+
+$("ctxUid")
+.textContent =
+base.incident_uid ||
+`INC-${base.id}`;
+
+$("ctxSeverity")
+.innerHTML =
+severityHTML(
+base.severity
+);
+
+$("ctxStatus")
+.innerHTML =
+stateHTML(
+base.status
+);
+
+$("ctxPriority")
+.textContent =
+base.priority ?? "—";
+
+$("ctxAssigned")
+.textContent =
+base.assigned_to ??
+"Unassigned";
+
+$("ctxDetected")
+.textContent =
+formatDate(
+base.detected_at
+);
+
+$("ctxContained")
+.textContent =
+formatDate(
+base.contained_at
+);
+
+$("ctxResolved")
+.textContent =
+formatDate(
+base.resolved_at
+);
+
+$("ctxDescription").textContent
+textContent =
+base.description ||
+"No incident description recorded.";
+
+
+$("alertList")
+.innerHTML = `
+<div class="loading">
+Loading incident investigation...
+</div>
+`;
+
+$("eventList")
+.innerHTML = `
+<div class="loading">
+Loading security evidence...
+</div>
+`;
+
+$("timeline")
+.innerHTML = `
+<div class="loading">
+Loading investigation timeline...
+</div>
+`;
+
+
+try {
+
+const response =
+await PhoenixAPI.request(
+`/api/incidents/${id}/investigation`
+);
+
+investigation =
+response;
+
+renderInvestigation(
+response
+);
+
+if (showMessage) {
+toast("Incident investigation loaded.");
+}
+
+} catch(error) {
+
+investigation =
+null;
+
+$("alertList").innerHTML = `
+<div class="empty">
+Investigation context unavailable: ${escapeHTML(error.message)}
+</div>
+`;
+
+$("eventList").innerHTML = `
+<div class="empty">
+No correlated event context available.
+</div>
+`;
+
+$("timeline").innerHTML = `
+<div class="empty">
+No investigation timeline available.
+</div>
+`;
+
+if (showMessage) {
+toast(
+`Investigation load failed: ${error.message}`
+);
+}
+
+}
+
+}
+
+
+function renderInvestigation(data) {
+
+const alertItems =
+list(
+data?.alerts,
+["alerts","items"]
+);
+
+const eventItems =
+list(
+data?.events,
+["events","items"]
+);
+
+const timelineItems =
+list(
+data?.timeline,
+["timeline","items"]
+);
+
+
+renderAlerts(
+alertItems
+);
+
+renderEvents(
+eventItems
+);
+
+renderTimeline(
+timelineItems
+);
+
+}
+
+
+function renderAlerts(items) {
+
+const container =
+$("alertList");
+
+
+if (!items.length) {
+
+container.innerHTML = `
+<div class="empty">
+No alerts are linked to this incident.
+</div>
+`;
+
+return;
+
+}
+
+
+container.innerHTML =
+items
+.map(
+alert => `
+
+<div class="alert">
+
+<div class="event-top">
+
+<div class="alert-name">
+${escapeHTML(
+alert.title ||
+alert.alert_uid ||
+"Security alert"
+)}
+</div>
+
+${severityHTML(
+alert.severity
+)}
+
+</div>
+
+<div class="alert-time">
+
+${escapeHTML(
+alert.alert_uid ||
+`ALERT-${alert.id}`
+)}
+
+ · Confidence
+${escapeHTML(
+alert.confidence ?? "—"
+)}%
+
+</div>
+
+<div class="alert-detail">
+
+${escapeHTML(
+alert.description ||
+"No alert description available."
+)}
+
+</div>
+
+</div>
+
+`
+)
+.join("");
+
+}
+
+
+function renderEvents(items) {
+
+const container =
+$("eventList");
+
+
+if (!items.length) {
+
+container.innerHTML = `
+<div class="empty">
+No correlated security events are linked to this incident.
+</div>
+`;
+
+return;
+
+}
+
+
+container.innerHTML =
+items
+.map(
+event => {
+
+const normalized =
+event.normalized_data ||
+{};
+
+return `
+
+<div class="event">
+
+<div class="event-top">
+
+<div class="event-name">
+
+${escapeHTML(
+event.event_uid ||
+`EVENT-${event.id}`
+)}
+
+</div>
+
+${severityHTML(
+event.severity
+)}
+
+</div>
+
+<div class="event-time">
+
+${formatDate(
+event.event_time ||
+event.timestamp
+)}
+
+ ·
+${escapeHTML(
+event.event_type ||
+"event"
+)}
+
+ ·
+${escapeHTML(
+event.action ||
+"—"
+)}
+
+</div>
+
+<div class="event-detail">
+
+User:
+${escapeHTML(
+event.username ||
+"—"
+)}
+
+ · Source:
+${escapeHTML(
+event.source_ip ||
+"—"
+)}
+
+ · Outcome:
+${escapeHTML(
+normalized.outcome ||
+"—"
+)}
+
+</div>
+
+</div>
+
+`;
+
+}
+)
+.join("");
+
+}
+
+
+function renderTimeline(items) {
+
+const container =
+$("timeline");
+
+
+if (!items.length) {
+
+container.innerHTML = `
+<div class="empty">
+No incident timeline entries are available.
+</div>
+`;
+
+return;
+
+}
+
+
+container.innerHTML =
+[...items]
+.sort(
+(a,b) =>
+new Date(
+b.occurred_at ||
+b.created_at ||
+0
+) -
+new Date(
+a.occurred_at ||
+a.created_at ||
+0
+)
+)
+.map(
+item => `
+
+<div class="timeline-item">
+
+<div class="timeline-name">
+${escapeHTML(
+item.event_type ||
+item.title ||
+"Investigation activity"
+)}
+</div>
+
+<div class="timeline-time">
+${formatDate(
+item.occurred_at ||
+item.created_at
+)}
+</div>
+
+<div class="timeline-description">
+${escapeHTML(
+item.description ||
+"Incident activity recorded."
+)}
+</div>
+
+</div>
+
+`
+)
+.join("");
+
+}
+
+
+async function lifecycleAction(
+action
+) {
+
+if (!selectedIncident) {
+
+toast(
+"Select an incident first."
+);
+
+return;
+
+}
+
+
+const labels = {
+acknowledge:"acknowledge",
+contain:"contain",
+resolve:"resolve"
+};
+
+
+if (
+!confirm(
+`Are you sure you want to ${labels[action]} this incident?`
+)
+) {
+return;
+}
+
+
+try {
+
+await PhoenixAPI.request(
+`/api/incidents/${selectedIncident.id}/${action}`,
+{
+method:"POST"
+}
+);
+
+toast(
+`Incident ${action} action completed.`
+);
+
+await loadIncidents();
+
+} catch(error) {
+
+toast(
+`Unable to ${action} incident: ${error.message}`
+);
+
+}
+
+}
+
+
+$("ackButton")
+.addEventListener(
+"click",
+() =>
+lifecycleAction("acknowledge")
+);
+
+$("containButton")
+.addEventListener(
+"click",
+() =>
+lifecycleAction("contain")
+);
+
+$("resolveButton")
+.addEventListener(
+"click",
+() =>
+lifecycleAction("resolve")
+);
+
+
+$("searchInput")
+.addEventListener(
+"input",
+renderQueue
+);
+
+$("severityFilter")
+.addEventListener(
+"change",
+renderQueue
+);
+
+$("statusFilter")
+.addEventListener(
+"change",
+renderQueue
+);
+
+
+$("clearFilters")
+.addEventListener(
+"click",
+() => {
+
+$("searchInput").value = "";
+$("severityFilter").value = "";
+$("statusFilter").value = "";
+
+renderQueue();
+
+}
+);
+
+
+$("refreshButton")
+.addEventListener(
+"click",
+loadIncidents
+);
+
+
+$("refreshHeader")
+.addEventListener(
+"click",
+loadIncidents
+);
+
+
+$("focusQueue")
+.addEventListener(
+"click",
+() =>
+$("incidentQueue")
+.scrollIntoView({
+behavior:"smooth",
+block:"start"
+})
+);
+
+
+
+$("globalSearch")
+.addEventListener(
+"keydown",
+event => {
+
+if (
+event.key === "Enter"
+) {
+
+const query =
+event.target.value.trim();
+
+if (query) {
+
+$("searchInput")
+.value =
+query;
+
+renderQueue();
+
+}
+
+}
+);
+
+
+loadIncidents();
+
+
+setInterval(
+loadIncidents,
+30000
+);
+
+})();
+</script>
+
+</body>
+</html>

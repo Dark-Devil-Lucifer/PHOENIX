@@ -1,0 +1,1697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PHOENIX | Digital Forensics</title>
+<link rel="stylesheet" href="/frontend/css/phoenix.css">
+    <link rel="stylesheet" href="/frontend/css/phoenix-theme.css?v=2">
+    
+
+<style>
+.module-page{max-width:1740px;margin:auto;padding:25px 26px 40px}
+.module-header{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:18px}
+.eyebrow{color:#4d91bd;font-size:8px;font-weight:800;letter-spacing:.15em;margin-bottom:5px}
+.module-header h1{margin:0;font-size:25px}
+.module-header p{margin:6px 0 0;color:var(--muted);font-size:11px}
+.module-actions{display:flex;gap:7px}
+.module-button{height:35px;padding:0 12px;border:1px solid var(--border);border-radius:6px;background:#0b1c2b;color:#a9bbc6;cursor:pointer;font-size:9px;font-weight:700}
+.module-button:hover{background:#102b3e;border-color:#315d78;color:white}
+.module-button.primary{background:#0d3550;border-color:#246d9d;color:#8dceff}
+
+.summary{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin-bottom:12px}
+.summary-item{min-height:75px;padding:12px 14px;border:1px solid var(--border);border-radius:7px;background:#0b1d2b}
+.summary-item span{display:block;color:#688294;font-size:8px;text-transform:uppercase;letter-spacing:.07em}
+.summary-item strong{display:block;margin-top:8px;font-size:21px}
+.blue strong{color:#64baff}
+.good strong{color:#5bd7aa}
+.warn strong{color:#e9c45d}
+.high strong{color:#ff9f58}
+.critical strong{color:#ff6175}
+
+.forensic-layout{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:12px}
+.panel{border:1px solid var(--border);border-radius:8px;background:#0b1d2b;overflow:hidden}
+
+.section-header{padding:13px 14px;border-bottom:1px solid var(--border)}
+.section-header h2{margin:0;font-size:12px}
+.section-header p{margin:4px 0 0;color:#657f90;font-size:8px}
+
+.toolbar{display:grid;grid-template-columns:minmax(220px,1fr) 150px 150px auto;gap:7px;padding:12px;border-bottom:1px solid var(--border);background:#091a28}
+.toolbar input,.toolbar select{height:35px;border:1px solid var(--border);border-radius:6px;background:#0b2030;color:#c7d6de;outline:none;padding:0 10px;font-size:9px}
+.toolbar input:focus,.toolbar select:focus{border-color:#2d79a6}
+
+.table-meta{display:flex;gap:18px;padding:9px 13px;color:#617b8d;border-bottom:1px solid var(--border-soft);font-size:8px}
+.table-meta strong{color:#cbd8df}
+
+.artifact-row{cursor:pointer}
+.artifact-row:hover{background:#102b3d}
+.artifact-row.selected{background:#102f43;box-shadow:inset 2px 0 #2d9fff}
+
+.artifact-name{color:#d4e1e7;font-size:9px;font-weight:750}
+.artifact-id{margin-top:4px;color:#4aaeff;font-family:ui-monospace,monospace;font-size:7px}
+.secondary{color:#718997;font-size:8px;margin-top:3px}
+
+.type-tag{display:inline-flex;padding:4px 6px;border:1px solid #294b61;border-radius:4px;background:#10293a;color:#9db7c6;font-size:7px;text-transform:uppercase}
+
+.hash{font-family:ui-monospace,monospace;color:#8aa6b5;font-size:7px}
+
+.case-list{max-height:340px;overflow:auto}
+.case-item{padding:11px 14px;border-bottom:1px solid rgba(24,56,77,.48);cursor:pointer}
+.case-item:hover{background:#10293a}
+.case-top{display:flex;justify-content:space-between;gap:10px}
+.case-title{font-size:9px;color:#d1dde3;font-weight:750}
+.case-meta{margin-top:5px;color:#708896;font-size:7px;line-height:1.5}
+
+.side-section+.side-section{border-top:1px solid var(--border)}
+.health{padding:11px 13px}
+.health-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(24,56,77,.5);font-size:8px;color:#7e96a4}
+.health-row:last-child{border-bottom:0}
+.health-row strong{color:#d0dce2}
+
+.collection-note{margin:13px;padding:10px;border:1px solid #294b61;border-radius:5px;background:#081923;color:#839ba8;font-size:8px;line-height:1.6}
+
+.empty{min-height:120px;display:grid;place-items:center;color:#60798a;font-size:9px;padding:15px;text-align:center}
+
+.drawer-backdrop{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.48);opacity:0;pointer-events:none;transition:opacity .2s}
+.drawer-backdrop.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;z-index:90;width:min(720px,95vw);height:100vh;overflow-y:auto;background:#071724;border-left:1px solid #244b63;box-shadow:-20px 0 60px rgba(0,0,0,.45);transform:translateX(100%);transition:transform .22s ease}
+.drawer.open{transform:translateX(0)}
+.drawer-header{position:sticky;top:0;z-index:2;padding:16px;background:#091b2a;border-bottom:1px solid var(--border)}
+.drawer-header-top{display:flex;justify-content:space-between;gap:15px}
+.drawer-title{margin:3px 0;font-size:17px}
+.drawer-uid{color:#4aaeff;font-family:ui-monospace,monospace;font-size:8px}
+.drawer-close{width:32px;height:32px;border:1px solid var(--border);border-radius:6px;background:#0c2130;color:#9eb2bd;cursor:pointer}
+.drawer-body{padding:13px}
+.drawer-section{margin-bottom:10px;border:1px solid var(--border);border-radius:7px;background:#0a1c2a;overflow:hidden}
+.drawer-section-title{padding:10px 12px;border-bottom:1px solid var(--border);color:#d3dfe5;font-size:10px;font-weight:750}
+.context-grid{display:grid;grid-template-columns:155px 1fr}
+.context-grid div{padding:8px 10px;border-bottom:1px solid rgba(24,56,77,.48);font-size:9px}
+.context-grid div:nth-child(odd){color:#637d8d}
+.context-grid div:nth-child(even){color:#c8d5dc;word-break:break-word}
+.evidence-box{margin:12px;padding:10px;border:1px solid #294b61;border-radius:5px;background:#081923;color:#8eaab9;font-family:ui-monospace,monospace;font-size:8px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.hash-box{margin:12px;padding:10px;border:1px solid #275845;border-radius:5px;background:#0b231d;color:#78d5b0;font-family:ui-monospace,monospace;font-size:8px;line-height:1.65;word-break:break-all}
+
+.toast{position:fixed;right:22px;bottom:22px;z-index:200;max-width:380px;padding:10px 13px;border:1px solid #285b77;border-radius:6px;background:#0a2232;color:#b9d2df;box-shadow:0 10px 30px rgba(0,0,0,.35);font-size:9px;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s}
+.toast.show{opacity:1;transform:translateY(0)}
+
+@media(max-width:1250px){
+.summary{grid-template-columns:repeat(3,1fr)}
+.forensic-layout{grid-template-columns:1fr}
+}
+@media(max-width:900px){
+.toolbar{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+.module-page{padding:18px 11px 30px}
+.module-header{flex-direction:column;align-items:flex-start}
+.summary{grid-template-columns:repeat(2,1fr)}
+.toolbar{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header class="topbar">
+
+<a class="brand" href="/frontend/">
+<div class="brand-symbol"><span>P</span></div>
+<div class="brand-text">
+<strong>PHOENIX</strong>
+<span>Autonomous Enterprise Cyber Defense Platform</span>
+</div>
+</a>
+
+<div class="global-search">
+<span class="search-icon">⌕</span>
+<input id="globalSearch" type="search" placeholder="Search events, incidents, assets, IOCs...">
+<kbd>/</kbd>
+</div>
+
+<div class="header-actions">
+
+<button class="header-button" id="refreshHeader">↻</button>
+
+<button class="header-button">
+♢
+<span class="notification-dot"></span>
+</button>
+
+<div class="header-divider"></div>
+
+<div class="analyst-menu">
+<div class="analyst-avatar">A</div>
+<div class="analyst-info">
+<strong>Analyst</strong>
+<span>SOC Analyst</span>
+</div>
+<span class="chevron">⌄</span>
+</div>
+
+</div>
+
+</header>
+
+
+<nav class="primary-nav">
+
+<a class="nav-item" href="/frontend/">Security Operations</a>
+<a class="nav-item" href="/frontend/pages/incidents.html">Incidents</a>
+<a class="nav-item" href="/frontend/pages/detections.html">Detections</a>
+<a class="nav-item" href="/frontend/pages/intelligence.html">Threat Intelligence</a>
+<a class="nav-item" href="/frontend/pages/assets.html">Assets</a>
+<a class="nav-item" href="/frontend/pages/response.html">Response</a>
+
+<button class="nav-more" id="moreButton">More ⌄</button>
+
+<div class="more-menu" id="moreMenu">
+
+<div class="more-column">
+<span class="menu-heading">Protect</span>
+<a href="/frontend/pages/vulnerabilities.html">Vulnerabilities</a>
+<a href="/frontend/pages/identity.html">Identity</a>
+<a href="/frontend/pages/zero-trust.html">Zero Trust</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Investigate</span>
+<a href="/frontend/pages/endpoints.html">Endpoints</a>
+<a href="/frontend/pages/hunting.html">Threat Hunting</a>
+<a class="active" href="/frontend/pages/forensics.html">Forensics</a>
+<a href="/frontend/pages/cases.html">Cases</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Infrastructure</span>
+<a href="/frontend/pages/cloud.html">Cloud</a>
+<a href="/frontend/pages/kubernetes.html">Kubernetes</a>
+<a href="/frontend/pages/dlp.html">DLP</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Governance</span>
+<a href="/frontend/pages/recovery.html">Recovery</a>
+<a href="/frontend/pages/risk.html">Risk</a>
+<a href="/frontend/pages/compliance.html">Compliance</a>
+<a href="/frontend/pages/reports.html">Reports</a>
+</div>
+
+</div>
+
+</nav>
+
+
+<main class="module-page">
+
+<section class="module-header">
+
+<div>
+
+<div class="eyebrow">INVESTIGATE / DIGITAL FORENSICS</div>
+
+<h1>Digital Forensics & Evidence</h1>
+
+<p>
+Maintain forensic artifacts, cryptographic identifiers and case-linked evidence for defensible incident investigations.
+</p>
+
+</div>
+
+<div class="module-actions">
+
+<button class="module-button" id="refreshButton">
+↻ Refresh
+</button>
+
+<button class="module-button primary" id="generateButton">
+Generate Artifact UID
+</button>
+
+</div>
+
+</section>
+
+
+<section class="summary">
+
+<div class="summary-item blue">
+<span>Artifacts</span>
+<strong id="artifactCount">0</strong>
+</div>
+
+<div class="summary-item good">
+<span>Cases With Evidence</span>
+<strong id="caseCount">0</strong>
+</div>
+
+<div class="summary-item blue">
+<span>SHA-256 Tracked</span>
+<strong id="hashCount">0</strong>
+</div>
+
+<div class="summary-item high">
+<span>Host Artifacts</span>
+<strong id="hostCount">0</strong>
+</div>
+
+<div class="summary-item warn">
+<span>Network Artifacts</span>
+<strong id="networkCount">0</strong>
+</div>
+
+<div class="summary-item critical">
+<span>Unassigned</span>
+<strong id="unassignedCount">0</strong>
+</div>
+
+</section>
+
+
+<section class="forensic-layout">
+
+
+<div>
+
+
+<section class="panel">
+
+<header class="section-header">
+
+<h2>Forensic Artifact Register</h2>
+
+<p>
+Collected evidence and provenance records
+</p>
+
+</header>
+
+
+<div class="toolbar">
+
+<input
+id="searchInput"
+type="search"
+placeholder="Search artifact, case, source, hash..."
+>
+
+<select id="typeFilter">
+<option value="">All Artifact Types</option>
+</select>
+
+<select id="sourceFilter">
+<option value="">All Sources</option>
+</select>
+
+<button
+class="module-button"
+id="clearFilters"
+>
+Clear
+</button>
+
+</div>
+
+
+<div class="table-meta">
+
+<span>
+Artifacts:
+<strong id="visibleCount">0</strong>
+</span>
+
+<span>
+Integrity:
+<strong>SHA-256</strong>
+</span>
+
+<span>
+Evidence:
+<strong>CASE-LINKED</strong>
+</span>
+
+</div>
+
+
+<div class="table-container">
+
+<table>
+
+<thead>
+
+<tr>
+<th>Artifact</th>
+<th>Type</th>
+<th>Source</th>
+<th>SHA-256</th>
+<th>Collected By</th>
+<th>Collected</th>
+</tr>
+
+</thead>
+
+<tbody id="artifactRows">
+
+<tr>
+<td colspan="6">
+<div class="table-loading">
+Loading forensic artifacts...
+</div>
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+
+<section class="panel">
+
+<header class="section-header">
+
+<h2>Evidence Cases</h2>
+
+<p>
+Incident cases associated with forensic investigation
+</p>
+
+</header>
+
+
+<div
+class="case-list"
+id="caseList"
+>
+
+<div class="empty">
+No case evidence records available.
+</div>
+
+</div>
+
+</section>
+
+
+</div>
+
+
+<aside class="panel">
+
+
+<section class="side-section">
+
+<header class="section-header">
+
+<h2>Evidence Posture</h2>
+
+<p>
+Current forensic collection state
+</p>
+
+</header>
+
+
+<div class="health">
+
+<div class="health-row">
+<span>Total Artifacts</span>
+<strong id="healthArtifacts">0</strong>
+</div>
+
+<div class="health-row">
+<span>With SHA-256</span>
+<strong id="healthHashes">0</strong>
+</div>
+
+<div class="health-row">
+<span>Case Linked</span>
+<strong id="healthLinked">0</strong>
+</div>
+
+<div class="health-row">
+<span>Unassigned</span>
+<strong id="healthUnassigned">0</strong>
+</div>
+
+<div class="health-row">
+<span>Unique Sources</span>
+<strong id="healthSources">0</strong>
+</div>
+
+</div>
+
+</section>
+
+
+<section class="side-section">
+
+<header class="section-header">
+
+<h2>Collection Discipline</h2>
+
+<p>
+Evidence handling principles
+</p>
+
+</header>
+
+<div class="collection-note">
+Preserve the artifact UID, source, collector, collection timestamp and SHA-256 where available. Case linkage and provenance should remain intact throughout the investigation lifecycle.
+</div>
+
+</section>
+
+
+<section class="side-section">
+
+<header class="section-header">
+
+<h2>Artifact Types</h2>
+
+<p>
+Current collection distribution
+</p>
+
+</header>
+
+
+<div
+class="health"
+id="typePosture"
+>
+
+<div class="empty">
+No artifact types available.
+</div>
+
+</div>
+
+</section>
+
+
+</aside>
+
+</section>
+
+</main>
+
+</div>
+
+
+<div
+class="drawer-backdrop"
+id="drawerBackdrop"
+></div>
+
+
+<aside
+class="drawer"
+id="forensicDrawer"
+>
+
+<header class="drawer-header">
+
+<div class="drawer-header-top">
+
+<div>
+
+<div class="eyebrow">
+FORENSIC EVIDENCE
+</div>
+
+<h2
+class="drawer-title"
+id="drawerTitle"
+>
+Artifact
+</h2>
+
+<div
+class="drawer-uid"
+id="drawerUid"
+>
+—
+</div>
+
+</div>
+
+<button
+class="drawer-close"
+id="closeDrawer"
+>
+×
+</button>
+
+</div>
+
+</header>
+
+
+<div class="drawer-body">
+
+
+<section class="drawer-section">
+
+<div class="drawer-section-title">
+Artifact Context
+</div>
+
+<div class="context-grid">
+
+<div>Artifact UID</div>
+<div id="drawerArtifactUid">—</div>
+
+<div>Case ID</div>
+<div id="drawerCaseId">—</div>
+
+<div>Artifact Type</div>
+<div id="drawerType">—</div>
+
+<div>Source</div>
+<div id="drawerSource">—</div>
+
+<div>Collected By</div>
+<div id="drawerCollector">—</div>
+
+<div>Collected At</div>
+<div id="drawerCollected">—</div>
+
+</div>
+
+</section>
+
+
+<section class="drawer-section">
+
+<div class="drawer-section-title">
+Cryptographic Integrity
+</div>
+
+<div
+class="hash-box"
+id="drawerHash"
+>
+No SHA-256 recorded.
+</div>
+
+</section>
+
+
+<section class="drawer-section">
+
+<div class="drawer-section-title">
+Evidence Metadata
+</div>
+
+<div
+class="evidence-box"
+id="drawerEvidence"
+>
+No evidence metadata recorded.
+</div>
+
+</section>
+
+
+<section class="drawer-section">
+
+<div class="drawer-section-title">
+Chain-of-Custody Context
+</div>
+
+<div class="evidence-box">
+Artifact provenance should remain associated with the investigation case. Any subsequent processing, transfer or analytical action should be documented through the case/evidence workflow.
+</div>
+
+</section>
+
+</div>
+
+</aside>
+
+
+<div
+class="toast"
+id="toast"
+></div>
+
+
+<script src="/frontend/js/api.js"></script>
+<script src="/frontend/js/auth-guard.js"></script>
+<script src="/frontend/js/navigation.js"></script>
+
+<script>
+(() => {
+
+"use strict";
+
+const $ = id => document.getElementById(id);
+
+let artifacts = [];
+let cases = [];
+
+
+function escapeHTML(value) {
+
+return String(value ?? "")
+.replace(
+/[&<>"']/g,
+char =>
+({
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#039;"
+}[char])
+);
+
+}
+
+
+function normalize(value) {
+
+return String(value ?? "")
+.trim()
+.toLowerCase();
+
+}
+
+
+function unwrap(data, keys) {
+
+if (Array.isArray(data)) return data;
+
+for (const key of keys) {
+
+if (Array.isArray(data?.[key])) {
+return data[key];
+}
+
+}
+
+return [];
+
+}
+
+
+function formatDate(value) {
+
+if (!value) return "—";
+
+const date = new Date(value);
+
+if (Number.isNaN(date.getTime())) {
+return escapeHTML(value);
+}
+
+return date.toLocaleString(
+[],
+{
+month:"short",
+day:"2-digit",
+hour:"2-digit",
+minute:"2-digit"
+}
+);
+
+}
+
+
+function showToast(message) {
+
+const toast = $("toast");
+
+toast.textContent = message;
+
+toast.classList.add("show");
+
+setTimeout(
+() => toast.classList.remove("show"),
+2800
+);
+
+}
+
+
+async function safeRequest(
+path,
+options
+) {
+
+try {
+
+return await PhoenixAPI.request(
+path,
+options
+);
+
+} catch(error) {
+
+return {
+__error:true,
+message:error.message
+};
+
+}
+
+}
+
+
+async function loadForensics() {
+
+const artifactData =
+await safeRequest(
+"/api/forensics/artifacts"
+);
+
+if (!artifactData.__error) {
+
+artifacts =
+unwrap(
+artifactData,
+[
+"artifacts",
+"items"
+]
+);
+
+} else {
+
+artifacts = [];
+
+}
+
+
+const caseData =
+await safeRequest(
+"/api/cases"
+);
+
+if (!caseData.__error) {
+
+cases =
+unwrap(
+caseData,
+[
+"cases",
+"items"
+]
+);
+
+} else {
+
+cases = [];
+
+}
+
+
+updateSummary();
+populateFilters();
+renderArtifacts();
+renderCases();
+updateHealth();
+renderTypePosture();
+
+
+if (
+artifactData.__error &&
+caseData.__error
+) {
+
+showToast(
+"Forensic APIs are unavailable or require analyst authentication."
+);
+
+}
+
+}
+
+
+function hasHash(artifact) {
+
+return Boolean(
+artifact.hash_sha256 &&
+String(
+artifact.hash_sha256
+).trim()
+);
+
+}
+
+
+function updateSummary() {
+
+const host =
+artifacts.filter(
+artifact =>
+normalize(artifact.artifact_type)
+.includes("host")
+).length;
+
+const network =
+artifacts.filter(
+artifact =>
+normalize(artifact.artifact_type)
+.includes("network")
+).length;
+
+const hashes =
+artifacts.filter(hasHash).length;
+
+const unassigned =
+artifacts.filter(
+artifact =>
+!artifact.case_id
+).length;
+
+const linkedCases =
+new Set(
+artifacts
+.map(
+artifact =>
+artifact.case_id
+)
+.filter(Boolean)
+).size;
+
+
+$("artifactCount")
+.textContent =
+artifacts.length;
+
+$("caseCount")
+.textContent =
+linkedCases;
+
+$("hashCount")
+.textContent =
+hashes;
+
+$("hostCount")
+.textContent =
+host;
+
+$("networkCount")
+.textContent =
+network;
+
+$("unassignedCount")
+.textContent =
+unassigned;
+
+}
+
+
+function populateFilters() {
+
+const typeFilter =
+$("typeFilter");
+
+const sourceFilter =
+$("sourceFilter");
+
+const oldType =
+typeFilter.value;
+
+const oldSource =
+sourceFilter.value;
+
+
+const types =
+new Set(
+artifacts
+.map(
+artifact =>
+artifact.artifact_type
+)
+.filter(Boolean)
+);
+
+
+const sources =
+new Set(
+artifacts
+.map(
+artifact =>
+artifact.source
+)
+.filter(Boolean)
+);
+
+
+typeFilter.innerHTML =
+`<option value="">All Artifact Types</option>`;
+
+[...types]
+.sort()
+.forEach(
+value => {
+
+const option =
+document.createElement("option");
+
+option.value =
+value;
+
+option.textContent =
+value;
+
+typeFilter.appendChild(option);
+
+}
+);
+
+
+sourceFilter.innerHTML =
+`<option value="">All Sources</option>`;
+
+[...sources]
+.sort()
+.forEach(
+value => {
+
+const option =
+document.createElement("option");
+
+option.value =
+value;
+
+option.textContent =
+value;
+
+sourceFilter.appendChild(option);
+
+}
+);
+
+
+typeFilter.value =
+oldType;
+
+sourceFilter.value =
+oldSource;
+
+}
+
+
+function filteredArtifacts() {
+
+const query =
+normalize(
+$("searchInput").value
+);
+
+const type =
+normalize(
+$("typeFilter").value
+);
+
+const source =
+normalize(
+$("sourceFilter").value
+);
+
+
+return artifacts.filter(
+artifact => {
+
+const searchable =
+[
+artifact.artifact_uid,
+artifact.artifact_type,
+artifact.source,
+artifact.hash_sha256,
+artifact.collected_by,
+artifact.case_id,
+JSON.stringify(
+artifact.evidence || {}
+)
+]
+.join(" ")
+.toLowerCase();
+
+
+if (
+query &&
+!searchable.includes(query)
+) {
+return false;
+}
+
+
+if (
+type &&
+normalize(artifact.artifact_type) !== type
+) {
+return false;
+}
+
+
+if (
+source &&
+normalize(artifact.source) !== source
+) {
+return false;
+}
+
+
+return true;
+
+}
+);
+
+}
+
+
+function renderArtifacts() {
+
+const body =
+$("artifactRows");
+
+const items =
+filteredArtifacts();
+
+$("visibleCount")
+.textContent =
+items.length;
+
+
+if (!items.length) {
+
+body.innerHTML = `
+<tr>
+<td colspan="6">
+<div class="empty">
+${
+artifacts.length
+? "No forensic artifacts match the current filters."
+: "No forensic artifacts are currently registered."
+}
+</div>
+</td>
+</tr>
+`;
+
+return;
+
+}
+
+
+body.innerHTML =
+items
+.map(
+artifact => `
+
+<tr
+class="artifact-row"
+data-id="${escapeHTML(artifact.id)}"
+>
+
+<td>
+
+<div class="artifact-name">
+${escapeHTML(
+artifact.artifact_type ||
+"Artifact"
+)}
+</div>
+
+<div class="artifact-id">
+${escapeHTML(
+artifact.artifact_uid ||
+`ART-${artifact.id}`
+)}
+</div>
+
+</td>
+
+<td>
+<span class="type-tag">
+${escapeHTML(
+artifact.artifact_type ||
+"unknown"
+)}
+</span>
+</td>
+
+<td>
+${escapeHTML(
+artifact.source ||
+"—"
+)}
+</td>
+
+<td>
+
+${
+hasHash(artifact)
+? `<span class="hash">${
+escapeHTML(
+String(
+artifact.hash_sha256
+).slice(0,18)
+)
+}…</span>`
+: `<span class="secondary">Not recorded</span>`
+}
+
+</td>
+
+<td>
+${escapeHTML(
+artifact.collected_by ||
+"Unknown"
+)}
+</td>
+
+<td>
+${formatDate(
+artifact.collected_at ||
+artifact.created_at
+)}
+</td>
+
+</tr>
+
+`
+)
+.join("");
+
+
+body
+.querySelectorAll(".artifact-row")
+.forEach(
+row =>
+row.addEventListener(
+"click",
+() =>
+openArtifact(
+Number(row.dataset.id)
+)
+)
+);
+
+}
+
+
+function renderCases() {
+
+const container =
+$("caseList");
+
+
+const relevant =
+[...cases]
+.sort(
+(a,b) =>
+new Date(
+b.updated_at ||
+b.created_at ||
+0
+) -
+new Date(
+a.updated_at ||
+a.created_at ||
+0
+)
+)
+.slice(0,12);
+
+
+if (!relevant.length) {
+
+container.innerHTML = `
+<div class="empty">
+No case records available.
+</div>
+`;
+
+return;
+
+}
+
+
+container.innerHTML =
+relevant
+.map(
+item => {
+
+const evidenceCount =
+artifacts.filter(
+artifact =>
+Number(artifact.case_id) ===
+Number(item.id)
+).length;
+
+return `
+
+<div
+class="case-item"
+>
+
+<div class="case-top">
+
+<span class="case-title">
+${escapeHTML(
+item.title ||
+item.case_uid ||
+`Case ${item.id}`
+)}
+</span>
+
+<span class="type-tag">
+${evidenceCount}
+evidence
+</span>
+
+</div>
+
+<div class="case-meta">
+
+${escapeHTML(
+item.case_uid ||
+`CASE-${item.id}`
+)}
+
+ ·
+${escapeHTML(
+item.status ||
+"unknown"
+)}
+
+<br>
+
+Priority:
+${escapeHTML(
+item.priority ??
+"—"
+)}
+
+ ·
+Updated:
+${formatDate(
+item.updated_at ||
+item.created_at
+)}
+
+</div>
+
+</div>
+
+`;
+
+}
+)
+.join("");
+
+}
+
+
+function updateHealth() {
+
+const hashes =
+artifacts.filter(hasHash).length;
+
+const linked =
+artifacts.filter(
+artifact =>
+artifact.case_id
+).length;
+
+const unassigned =
+artifacts.filter(
+artifact =>
+!artifact.case_id
+).length;
+
+const sources =
+new Set(
+artifacts
+.map(
+artifact =>
+artifact.source
+)
+.filter(Boolean)
+).size;
+
+
+$("healthArtifacts")
+.textContent =
+artifacts.length;
+
+$("healthHashes")
+.textContent =
+hashes;
+
+$("healthLinked")
+.textContent =
+linked;
+
+$("healthUnassigned")
+.textContent =
+unassigned;
+
+$("healthSources")
+.textContent =
+sources;
+
+}
+
+
+function renderTypePosture() {
+
+const container =
+$("typePosture");
+
+const map =
+new Map();
+
+
+artifacts.forEach(
+artifact => {
+
+const type =
+artifact.artifact_type ||
+"unknown";
+
+map.set(
+type,
+(map.get(type) || 0) + 1
+);
+
+}
+);
+
+
+if (!map.size) {
+
+container.innerHTML = `
+<div class="empty">
+No artifact types available.
+</div>
+`;
+
+return;
+
+}
+
+
+container.innerHTML =
+[...map.entries()]
+.sort(
+(a,b) =>
+b[1] - a[1]
+)
+.slice(0,8)
+.map(
+([type,count]) => `
+
+<div class="health-row">
+
+<span>
+${escapeHTML(type)}
+</span>
+
+<strong>
+${escapeHTML(count)}
+</strong>
+
+</div>
+
+`
+)
+.join("");
+
+}
+
+
+async function openArtifact(id) {
+
+const local =
+artifacts.find(
+artifact =>
+Number(artifact.id) === id
+);
+
+if (!local) return;
+
+
+let artifact =
+local;
+
+
+const remote =
+await safeRequest(
+`/api/forensics/artifacts/${id}`
+);
+
+if (
+remote &&
+!remote.__error
+) {
+
+artifact =
+remote.artifact ||
+remote;
+
+}
+
+
+$("drawerTitle")
+.textContent =
+artifact.artifact_type ||
+"Artifact";
+
+$("drawerUid")
+.textContent =
+artifact.artifact_uid ||
+`ART-${artifact.id}`;
+
+$("drawerArtifactUid")
+textContent =
+artifact.artifact_uid ||
+`ART-${artifact.id}`;
+
+$("drawerCaseId")
+textContent =
+artifact.case_id ??
+"Unassigned";
+
+$("drawerType")
+textContent =
+artifact.artifact_type ||
+"—";
+
+$("drawerSource")
+textContent =
+artifact.source ||
+"—";
+
+$("drawerCollector")
+textContent =
+artifact.collected_by ||
+"Unknown";
+
+$("drawerCollected")
+textContent =
+formatDate(
+artifact.collected_at ||
+artifact.created_at
+);
+
+
+$("drawerHash")
+textContent =
+artifact.hash_sha256 ||
+"No SHA-256 recorded.";
+
+
+$("drawerEvidence")
+textContent =
+artifact.evidence
+? (
+typeof artifact.evidence === "string"
+? artifact.evidence
+: JSON.stringify(
+artifact.evidence,
+null,
+2
+)
+)
+: "No evidence metadata recorded.";
+
+
+$("forensicDrawer")
+.classList.add("open");
+
+$("drawerBackdrop")
+.classList.add("open");
+
+}
+
+
+function closeDrawer() {
+
+$("forensicDrawer")
+.classList.remove("open");
+
+$("drawerBackdrop")
+.classList.remove("open");
+
+}
+
+
+$("searchInput")
+.addEventListener(
+"input",
+renderArtifacts
+);
+
+$("typeFilter")
+.addEventListener(
+"change",
+renderArtifacts
+);
+
+$("sourceFilter")
+.addEventListener(
+"change",
+renderArtifacts
+);
+
+
+$("clearFilters")
+.addEventListener(
+"click",
+() => {
+
+$("searchInput").value = "";
+$("typeFilter").value = "";
+$("sourceFilter").value = "";
+
+renderArtifacts();
+
+}
+);
+
+
+$("generateButton")
+.addEventListener(
+"click",
+async () => {
+
+try {
+
+const result =
+await PhoenixAPI.request(
+"/api/forensics/artifacts/generate-uid",
+{
+method:"POST"
+}
+);
+
+const uid =
+result?.artifact_uid ||
+result?.uid ||
+result?.value;
+
+showToast(
+uid
+? `Generated artifact UID: ${uid}`
+: "Artifact UID generated."
+);
+
+} catch(error) {
+
+showToast(
+`UID generation failed: ${error.message}`
+);
+
+}
+
+}
+);
+
+
+$("refreshButton")
+.addEventListener(
+"click",
+async () => {
+
+await loadForensics();
+
+showToast(
+"Forensic evidence refreshed."
+);
+
+}
+);
+
+
+$("refreshHeader")
+.addEventListener(
+"click",
+() =>
+$("refreshButton").click()
+);
+
+
+$("closeDrawer")
+.addEventListener(
+"click",
+closeDrawer
+);
+
+
+$("drawerBackdrop")
+.addEventListener(
+"click",
+closeDrawer
+);
+
+
+
+$("globalSearch")
+.addEventListener(
+"keydown",
+event => {
+
+if (
+event.key === "Enter"
+) {
+
+const query =
+event.target.value.trim();
+
+if (query) {
+
+window.location.href =
+`/frontend/pages/events.html?q=${encodeURIComponent(query)}`;
+
+}
+
+}
+
+}
+);
+
+
+loadForensics();
+
+
+setInterval(
+loadForensics,
+30000
+);
+
+})();
+</script>
+
+</body>
+</html>

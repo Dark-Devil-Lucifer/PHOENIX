@@ -1,0 +1,1884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PHOENIX | Kubernetes Security</title>
+<link rel="stylesheet" href="/frontend/css/phoenix.css">
+    <link rel="stylesheet" href="/frontend/css/phoenix-theme.css?v=2">
+    
+
+<style>
+.module-page{max-width:1740px;margin:auto;padding:25px 26px 40px}
+.module-header{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:18px}
+.eyebrow{color:#4d91bd;font-size:8px;font-weight:800;letter-spacing:.15em;margin-bottom:5px}
+.module-header h1{margin:0;font-size:25px}
+.module-header p{margin:6px 0 0;color:var(--muted);font-size:11px}
+.module-actions{display:flex;gap:7px}
+.module-button{height:35px;padding:0 12px;border:1px solid var(--border);border-radius:6px;background:#0b1c2b;color:#a9bbc6;cursor:pointer;font-size:9px;font-weight:700}
+.module-button:hover{background:#102b3e;border-color:#315d78;color:white}
+.module-button.primary{background:#0d3550;border-color:#246d9d;color:#8dceff}
+
+.summary{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin-bottom:12px}
+.summary-item{min-height:75px;padding:12px 14px;border:1px solid var(--border);border-radius:7px;background:#0b1d2b}
+.summary-item span{display:block;color:#688294;font-size:8px;text-transform:uppercase;letter-spacing:.07em}
+.summary-item strong{display:block;margin-top:8px;font-size:21px}
+.blue strong{color:#64baff}
+.good strong{color:#5bd7aa}
+.warn strong{color:#e9c45d}
+.high strong{color:#ff9f58}
+.critical strong{color:#ff6175}
+
+.kube-layout{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:12px}
+.panel{border:1px solid var(--border);border-radius:8px;background:#0b1d2b;overflow:hidden}
+
+.toolbar{display:grid;grid-template-columns:minmax(240px,1fr) 145px 145px auto;gap:7px;padding:12px;border-bottom:1px solid var(--border);background:#091a28}
+.toolbar input,.toolbar select{height:35px;border:1px solid var(--border);border-radius:6px;background:#0b2030;color:#c7d6de;outline:none;padding:0 10px;font-size:9px}
+.toolbar input:focus,.toolbar select:focus{border-color:#2d79a6}
+
+.table-meta{display:flex;gap:18px;padding:9px 13px;color:#617b8d;border-bottom:1px solid var(--border-soft);font-size:8px}
+.table-meta strong{color:#cbd8df}
+
+.kube-row{cursor:pointer}
+.kube-row:hover{background:#102b3d}
+.kube-row.selected{background:#102f43;box-shadow:inset 2px 0 #2d9fff}
+
+.resource-name{color:#d4e1e7;font-size:9px;font-weight:750}
+.resource-id{margin-top:4px;color:#4aaeff;font-family:ui-monospace,monospace;font-size:7px}
+.secondary{color:#718997;font-size:8px;margin-top:3px}
+
+.state{display:inline-flex;padding:4px 6px;border-radius:4px;border:1px solid #294b61;background:#10293a;color:#9db7c6;font-size:7px;text-transform:uppercase}
+.state.running,.state.active,.state.healthy,.state.resolved{border-color:#275845;background:#0d2821;color:#64d7aa}
+.state.warning,.state.degraded,.state.pending{border-color:#5b502d;background:#292417;color:#e6cb6b}
+.state.failed,.state.critical,.state.noncompliant{border-color:#67333d;background:#27171b;color:#ff697b}
+
+.severity{display:inline-flex;padding:4px 6px;border-radius:4px;font-size:7px;text-transform:uppercase}
+.severity.critical{border:1px solid #67333d;background:#27171b;color:#ff697b}
+.severity.high{border:1px solid #65432f;background:#2a1e18;color:#ffae70}
+.severity.medium{border:1px solid #5b502d;background:#292417;color:#e6cb6b}
+.severity.low{border:1px solid #294b61;background:#10293a;color:#91aec0}
+
+.side-section+.side-section{border-top:1px solid var(--border)}
+.section-header{padding:14px;border-bottom:1px solid var(--border)}
+.section-header h2{margin:0;font-size:12px}
+.section-header p{margin:4px 0 0;color:#657f90;font-size:8px}
+
+.health{padding:12px 13px}
+.health-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(24,56,77,.5);font-size:8px;color:#7e96a4}
+.health-row:last-child{border-bottom:0}
+.health-row strong{color:#d0dce2}
+
+.finding-list{max-height:330px;overflow-y:auto}
+.finding-item{padding:10px 13px;border-bottom:1px solid rgba(24,56,77,.48);cursor:pointer}
+.finding-item:hover{background:#10293a}
+.finding-top{display:flex;justify-content:space-between;gap:8px}
+.finding-title{color:#d0dce2;font-size:8px;font-weight:750}
+.finding-detail{margin-top:5px;color:#718997;font-size:8px;line-height:1.45}
+
+.empty{min-height:130px;display:grid;place-items:center;color:#60798a;font-size:9px;padding:15px;text-align:center}
+
+.drawer-backdrop{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.48);opacity:0;pointer-events:none;transition:opacity .2s}
+.drawer-backdrop.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;z-index:90;width:min(720px,95vw);height:100vh;overflow-y:auto;background:#071724;border-left:1px solid #244b63;box-shadow:-20px 0 60px rgba(0,0,0,.45);transform:translateX(100%);transition:transform .22s ease}
+.drawer.open{transform:translateX(0)}
+.drawer-header{position:sticky;top:0;z-index:2;padding:16px;background:#091b2a;border-bottom:1px solid var(--border)}
+.drawer-header-top{display:flex;justify-content:space-between;gap:15px}
+.drawer-title{margin:3px 0;font-size:17px}
+.drawer-uid{color:#4aaeff;font-family:ui-monospace,monospace;font-size:8px}
+.drawer-close{width:32px;height:32px;border:1px solid var(--border);border-radius:6px;background:#0c2130;color:#9eb2bd;cursor:pointer}
+.drawer-body{padding:13px}
+.drawer-section{margin-bottom:10px;border:1px solid var(--border);border-radius:7px;background:#0a1c2a;overflow:hidden}
+.drawer-section-title{padding:10px 12px;border-bottom:1px solid var(--border);color:#d3dfe5;font-size:10px;font-weight:750}
+.context-grid{display:grid;grid-template-columns:160px 1fr}
+.context-grid div{padding:8px 10px;border-bottom:1px solid rgba(24,56,77,.48);font-size:9px}
+.context-grid div:nth-child(odd){color:#637d8d}
+.context-grid div:nth-child(even){color:#c8d5dc;word-break:break-word}
+.code-box{margin:12px;padding:10px;border:1px solid #294b61;border-radius:5px;background:#081923;color:#8eaab9;font-family:ui-monospace,monospace;font-size:8px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.code-box.risk{border-color:#67333d;background:#25171b;color:#ff8792}
+.action-box{padding:12px}
+.action-note{padding:9px 10px;border:1px solid #294b61;border-radius:5px;background:#0c2333;color:#91aab7;font-size:8px;line-height:1.6}
+
+.toast{position:fixed;right:22px;bottom:22px;z-index:200;max-width:380px;padding:10px 13px;border:1px solid #285b77;border-radius:6px;background:#0a2232;color:#b9d2df;box-shadow:0 10px 30px rgba(0,0,0,.35);font-size:9px;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s}
+.toast.show{opacity:1;transform:translateY(0)}
+
+@media(max-width:1250px){
+.summary{grid-template-columns:repeat(3,1fr)}
+.kube-layout{grid-template-columns:1fr}
+}
+@media(max-width:900px){
+.toolbar{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+.module-page{padding:18px 11px 30px}
+.module-header{flex-direction:column;align-items:flex-start}
+.summary{grid-template-columns:repeat(2,1fr)}
+.toolbar{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header class="topbar">
+
+<a class="brand" href="/frontend/">
+<div class="brand-symbol"><span>P</span></div>
+<div class="brand-text">
+<strong>PHOENIX</strong>
+<span>Autonomous Enterprise Cyber Defense Platform</span>
+</div>
+</a>
+
+<div class="global-search">
+<span class="search-icon">⌕</span>
+<input id="globalSearch" type="search" placeholder="Search events, incidents, assets, IOCs...">
+<kbd>/</kbd>
+</div>
+
+<div class="header-actions">
+
+<button class="header-button" id="refreshHeader">↻</button>
+
+<button class="header-button">
+♢
+<span class="notification-dot"></span>
+</button>
+
+<div class="header-divider"></div>
+
+<div class="analyst-menu">
+<div class="analyst-avatar">A</div>
+<div class="analyst-info">
+<strong>Analyst</strong>
+<span>SOC Analyst</span>
+</div>
+<span class="chevron">⌄</span>
+</div>
+
+</div>
+
+</header>
+
+
+<nav class="primary-nav">
+
+<a class="nav-item" href="/frontend/">Security Operations</a>
+<a class="nav-item" href="/frontend/pages/incidents.html">Incidents</a>
+<a class="nav-item" href="/frontend/pages/detections.html">Detections</a>
+<a class="nav-item" href="/frontend/pages/intelligence.html">Threat Intelligence</a>
+<a class="nav-item" href="/frontend/pages/assets.html">Assets</a>
+<a class="nav-item" href="/frontend/pages/response.html">Response</a>
+
+<button class="nav-more" id="moreButton">More ⌄</button>
+
+<div class="more-menu" id="moreMenu">
+
+<div class="more-column">
+<span class="menu-heading">Protect</span>
+<a href="/frontend/pages/vulnerabilities.html">Vulnerabilities</a>
+<a href="/frontend/pages/identity.html">Identity</a>
+<a href="/frontend/pages/zero-trust.html">Zero Trust</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Investigate</span>
+<a href="/frontend/pages/endpoints.html">Endpoints</a>
+<a href="/frontend/pages/hunting.html">Threat Hunting</a>
+<a href="/frontend/pages/forensics.html">Forensics</a>
+<a href="/frontend/pages/cases.html">Cases</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Infrastructure</span>
+<a class="active" href="/frontend/pages/cloud.html">Cloud</a>
+<a class="active" href="/frontend/pages/kubernetes.html">Kubernetes</a>
+<a href="/frontend/pages/dlp.html">DLP</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Governance</span>
+<a href="/frontend/pages/recovery.html">Recovery</a>
+<a href="/frontend/pages/risk.html">Risk</a>
+<a href="/frontend/pages/compliance.html">Compliance</a>
+<a href="/frontend/pages/reports.html">Reports</a>
+</div>
+
+</div>
+
+</nav>
+
+
+<main class="module-page">
+
+<section class="module-header">
+
+<div>
+
+<div class="eyebrow">CONTAINER SECURITY / KUBERNETES</div>
+
+<h1>Kubernetes Security Operations</h1>
+
+<p>
+Monitor clusters, container images and workload behavior against approved runtime baselines.
+</p>
+
+</div>
+
+<div class="module-actions">
+
+<button class="module-button" id="refreshButton">
+↻ Refresh
+</button>
+
+<button class="module-button primary" id="baselineButton">
+Baseline Review
+</button>
+
+</div>
+
+</section>
+
+
+<section class="summary">
+
+<div class="summary-item blue">
+<span>Clusters</span>
+<strong id="clusterCount">0</strong>
+</div>
+
+<div class="summary-item blue">
+<span>Container Images</span>
+<strong id="imageCount">0</strong>
+</div>
+
+<div class="summary-item blue">
+<span>Workloads</span>
+<strong id="workloadCount">0</strong>
+</div>
+
+<div class="summary-item critical">
+<span>Critical Findings</span>
+<strong id="criticalCount">0</strong>
+</div>
+
+<div class="summary-item high">
+<span>High Findings</span>
+<strong id="highCount">0</strong>
+</div>
+
+<div class="summary-item warn">
+<span>Baseline Deviations</span>
+<strong id="baselineCount">0</strong>
+</div>
+
+</section>
+
+
+<section class="kube-layout">
+
+
+<article class="panel">
+
+<div class="toolbar">
+
+<input
+id="searchInput"
+type="search"
+placeholder="Search workload, image, cluster, namespace..."
+>
+
+<select id="resourceFilter">
+<option value="">All Resources</option>
+<option value="workload">Workloads</option>
+<option value="image">Images</option>
+<option value="cluster">Clusters</option>
+</select>
+
+<select id="stateFilter">
+<option value="">All States</option>
+<option value="running">Running</option>
+<option value="active">Active</option>
+<option value="warning">Warning</option>
+<option value="failed">Failed</option>
+</select>
+
+<button class="module-button" id="clearFilters">
+Clear
+</button>
+
+</div>
+
+
+<div class="table-meta">
+
+<span>
+Resources:
+<strong id="visibleCount">0</strong>
+</span>
+
+<span>
+Findings:
+<strong id="findingMeta">0</strong>
+</span>
+
+<span>
+Baseline:
+<strong>ENFORCED / REVIEW</strong>
+</span>
+
+</div>
+
+
+<div class="table-container">
+
+<table>
+
+<thead>
+
+<tr>
+<th>Resource</th>
+<th>Namespace / Repository</th>
+<th>Cluster</th>
+<th>Runtime State</th>
+<th>Security</th>
+</tr>
+
+</thead>
+
+<tbody id="resourceRows">
+
+<tr>
+<td colspan="5">
+<div class="table-loading">
+Loading Kubernetes inventory...
+</div>
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</article>
+
+
+<aside class="panel">
+
+
+<section class="side-section">
+
+<header class="section-header">
+
+<h2>Container Security Posture</h2>
+
+<p>
+Current cluster and workload exposure
+</p>
+
+</header>
+
+
+<div class="health">
+
+<div class="health-row">
+<span>Clusters</span>
+<strong id="healthClusters">0</strong>
+</div>
+
+<div class="health-row">
+<span>Images</span>
+<strong id="healthImages">0</strong>
+</div>
+
+<div class="health-row">
+<span>Workloads</span>
+<strong id="healthWorkloads">0</strong>
+</div>
+
+<div class="health-row">
+<span>Open Findings</span>
+<strong id="healthOpen">0</strong>
+</div>
+
+<div class="health-row">
+<span>Baseline Deviations</span>
+<strong id="healthBaseline">0</strong>
+</div>
+
+</div>
+
+</section>
+
+
+<section class="side-section">
+
+<header class="section-header">
+
+<h2>Security Findings</h2>
+
+<p>
+Container and workload findings
+</p>
+
+</header>
+
+
+<div
+class="finding-list"
+id="findingList"
+>
+
+<div class="empty">
+No Kubernetes security findings available.
+</div>
+
+</div>
+
+</section>
+
+
+</aside>
+
+</section>
+
+</main>
+
+</div>
+
+
+<div
+class="drawer-backdrop"
+id="drawerBackdrop"
+></div>
+
+
+<aside
+class="drawer"
+id="kubeDrawer"
+>
+
+<header class="drawer-header">
+
+<div class="drawer-header-top">
+
+<div>
+
+<div class="eyebrow">
+KUBERNETES INVESTIGATION
+</div>
+
+<h2
+class="drawer-title"
+id="drawerTitle"
+>
+Resource
+</h2>
+
+<div
+class="drawer-uid"
+id="drawerUid"
+>
+—
+</div>
+
+</div>
+
+<button
+class="drawer-close"
+id="closeDrawer"
+>
+×
+</button>
+
+</div>
+
+</header>
+
+
+<div class="drawer-body">
+
+
+<section class="drawer-section">
+
+<div class="drawer-section-title">
+Resource Context
+</div>
+
+<div class="context-grid">
+
+<div>Resource Type</div>
+<div id="drawerResourceType">—</div>
+
+<div>Name</div>
+<div id="drawerName">—</div>
+
+<div>Namespace</div>
+<div id="drawerNamespace">—</div>
+
+<div>Cluster</div>
+<div id="drawerCluster">—</div>
+
+<div>Image</div>
+<div id="drawerImage">—</div>
+
+<div>Desired State</div>
+<div id="drawerDesired">—</div>
+
+<div>Current State</div>
+<div id="drawerCurrent">—</div>
+
+<div>Baseline</div>
+<div id="drawerBaseline">—</div>
+
+</div>
+
+</section>
+
+
+<section class="drawer-section">
+
+<div class="drawer-section-title">
+Security Finding / Runtime Context
+</div>
+
+<div
+class="code-box"
+id="drawerFinding"
+>
+No finding selected.
+</div>
+
+</section>
+
+
+<section class="drawer-section">
+
+<div class="drawer-section-title">
+Analyst Guidance
+</div>
+
+<div class="action-box">
+
+<div class="action-note">
+Validate image provenance, cluster configuration and workload behavior before remediation. PHOENIX records controlled security state and baseline evaluations; it does not execute arbitrary kubectl or container commands from this interface.
+</div>
+
+</div>
+
+</section>
+
+</div>
+
+</aside>
+
+
+<div
+class="toast"
+id="toast"
+></div>
+
+
+<script src="/frontend/js/api.js"></script>
+<script src="/frontend/js/auth-guard.js"></script>
+<script src="/frontend/js/navigation.js"></script>
+
+<script>
+(() => {
+
+"use strict";
+
+const $ = id => document.getElementById(id);
+
+let clusters = [];
+let images = [];
+let findings = [];
+let workloads = [];
+
+
+function escapeHTML(value) {
+
+return String(value ?? "")
+.replace(
+/[&<>"']/g,
+char =>
+({
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#039;"
+}[char])
+);
+
+}
+
+
+function normalize(value) {
+
+return String(value ?? "")
+.trim()
+.toLowerCase();
+
+}
+
+
+function unwrap(data, keys) {
+
+if (Array.isArray(data)) return data;
+
+for (const key of keys) {
+
+if (Array.isArray(data?.[key])) {
+return data[key];
+}
+
+}
+
+return [];
+
+}
+
+
+function formatDate(value) {
+
+if (!value) return "—";
+
+const date = new Date(value);
+
+if (Number.isNaN(date.getTime())) {
+return escapeHTML(value);
+}
+
+return date.toLocaleString(
+[],
+{
+month:"short",
+day:"2-digit",
+hour:"2-digit",
+minute:"2-digit"
+}
+);
+
+}
+
+
+function showToast(message) {
+
+const toast = $("toast");
+
+toast.textContent = message;
+
+toast.classList.add("show");
+
+setTimeout(
+() => toast.classList.remove("show"),
+2600
+);
+
+}
+
+
+function stateHTML(value) {
+
+const state =
+normalize(value || "unknown");
+
+return `
+<span class="state ${escapeHTML(state)}">
+${escapeHTML(value || "unknown")}
+</span>
+`;
+
+}
+
+
+function severityHTML(value) {
+
+const severity =
+normalize(value || "unknown");
+
+return `
+<span class="severity ${escapeHTML(severity)}">
+${escapeHTML(value || "unknown")}
+</span>
+`;
+
+}
+
+
+async function loadKubernetes() {
+
+try {
+
+const [
+clusterData,
+imageData,
+findingData,
+workloadData
+] = await Promise.all([
+
+PhoenixAPI.request(
+"/api/kubernetes/clusters"
+),
+
+PhoenixAPI.request(
+"/api/kubernetes/images"
+),
+
+PhoenixAPI.request(
+"/api/kubernetes/findings"
+),
+
+PhoenixAPI.request(
+"/api/kubernetes/workloads"
+)
+
+]);
+
+clusters =
+unwrap(
+clusterData,
+[
+"clusters",
+"items"
+]
+);
+
+images =
+unwrap(
+imageData,
+[
+"images",
+"container_images",
+"items"
+]
+);
+
+findings =
+unwrap(
+findingData,
+[
+"findings",
+"container_findings",
+"items"
+]
+);
+
+workloads =
+unwrap(
+workloadData,
+[
+"workloads",
+"items"
+]
+);
+
+} catch(error) {
+
+clusters = [];
+images = [];
+findings = [];
+workloads = [];
+
+showToast(
+`Kubernetes inventory unavailable: ${error.message}`
+);
+
+}
+
+updateSummary();
+renderResources();
+renderFindings();
+updateHealth();
+
+}
+
+
+function updateSummary() {
+
+const critical =
+findings.filter(
+item =>
+normalize(item.severity) === "critical"
+).length;
+
+const high =
+findings.filter(
+item =>
+normalize(item.severity) === "high"
+).length;
+
+const baseline =
+workloads.filter(
+item => {
+
+const state =
+normalize(
+item.current_state ||
+item.state ||
+item.status
+);
+
+const desired =
+normalize(
+item.desired_state ||
+item.baseline_state
+);
+
+return (
+state &&
+desired &&
+state !== desired
+);
+
+}
+).length;
+
+
+$("clusterCount")
+.textContent =
+clusters.length;
+
+$("imageCount")
+.textContent =
+images.length;
+
+$("workloadCount")
+.textContent =
+workloads.length;
+
+$("criticalCount")
+.textContent =
+critical;
+
+$("highCount")
+.textContent =
+high;
+
+$("baselineCount")
+.textContent =
+baseline;
+
+$("findingMeta")
+.textContent =
+findings.length;
+
+}
+
+
+function resourceItems() {
+
+return [
+
+...workloads.map(
+item => ({
+...item,
+__resourceType:"workload"
+})
+),
+
+...images.map(
+item => ({
+...item,
+__resourceType:"image"
+})
+),
+
+...clusters.map(
+item => ({
+...item,
+__resourceType:"cluster"
+})
+)
+
+];
+
+}
+
+
+function filteredResources() {
+
+const query =
+normalize(
+$("searchInput").value
+);
+
+const resourceType =
+normalize(
+$("resourceFilter").value
+);
+
+const state =
+normalize(
+$("stateFilter").value
+);
+
+
+return resourceItems()
+.filter(
+item => {
+
+const searchable =
+[
+item.name,
+item.workload_uid,
+item.image_uid,
+item.cluster_uid,
+item.namespace,
+item.repository,
+item.image,
+item.image_name,
+item.cluster_name,
+item.resource_id
+]
+.join(" ")
+.toLowerCase();
+
+
+if (
+query &&
+!searchable.includes(query)
+) {
+return false;
+}
+
+
+if (
+resourceType &&
+item.__resourceType !== resourceType
+) {
+return false;
+}
+
+
+if (state) {
+
+const current =
+normalize(
+item.current_state ||
+item.state ||
+item.status ||
+item.phase
+);
+
+if (current !== state) {
+return false;
+}
+
+}
+
+
+return true;
+
+}
+);
+
+}
+
+
+function findCluster(item) {
+
+const clusterId =
+item.cluster_id ||
+item.kubernetes_cluster_id;
+
+return clusters.find(
+cluster =>
+Number(cluster.id) ===
+Number(clusterId)
+);
+
+}
+
+
+function findImage(item) {
+
+const imageId =
+item.image_id ||
+item.container_image_id;
+
+return images.find(
+image =>
+Number(image.id) ===
+Number(imageId)
+);
+
+}
+
+
+function renderResources() {
+
+const body =
+$("resourceRows");
+
+const items =
+filteredResources();
+
+$("visibleCount")
+.textContent =
+items.length;
+
+
+if (!items.length) {
+
+body.innerHTML = `
+<tr>
+<td colspan="5">
+<div class="empty">
+${
+resourceItems().length
+? "No Kubernetes resources match the current filters."
+: "No Kubernetes resources are currently available."
+}
+</div>
+</td>
+</tr>
+`;
+
+return;
+
+}
+
+
+body.innerHTML =
+items
+.map(
+item => {
+
+const cluster =
+findCluster(item);
+
+const image =
+findImage(item);
+
+const type =
+item.__resourceType;
+
+const name =
+item.name ||
+item.workload_name ||
+item.cluster_name ||
+item.image_name ||
+item.repository ||
+"Unnamed resource";
+
+const uid =
+item.workload_uid ||
+item.image_uid ||
+item.cluster_uid ||
+`K8S-${item.id}`;
+
+const namespace =
+item.namespace ||
+item.repository ||
+item.registry ||
+"—";
+
+const clusterName =
+cluster?.name ||
+cluster?.cluster_uid ||
+item.cluster_name ||
+"—";
+
+const state =
+item.current_state ||
+item.state ||
+item.status ||
+item.phase ||
+(
+type === "cluster"
+? "active"
+: "unknown"
+);
+
+const finding =
+findings.find(
+finding => {
+
+const findingResource =
+normalize(
+finding.resource_id ||
+finding.resource ||
+finding.workload_name ||
+finding.image_name
+);
+
+return (
+findingResource &&
+[
+normalize(item.resource_id),
+normalize(item.name),
+normalize(item.workload_name),
+normalize(item.image_name),
+normalize(item.image_uid),
+normalize(item.workload_uid)
+]
+.includes(findingResource)
+);
+
+}
+);
+
+
+return `
+
+<tr
+class="kube-row"
+data-type="${escapeHTML(type)}"
+data-id="${escapeHTML(item.id)}"
+>
+
+<td>
+
+<div class="resource-name">
+${escapeHTML(name)}
+</div>
+
+<div class="resource-id">
+${escapeHTML(uid)}
+</div>
+
+</td>
+
+<td>
+
+<div class="secondary">
+${escapeHTML(namespace)}
+</div>
+
+</td>
+
+<td>
+
+<div class="secondary">
+${escapeHTML(clusterName)}
+</div>
+
+</td>
+
+<td>
+${stateHTML(state)}
+</td>
+
+<td>
+
+${
+finding
+? severityHTML(
+finding.severity ||
+"finding"
+)
+: stateHTML("no finding")
+}
+
+</td>
+
+</tr>
+
+`;
+
+}
+)
+.join("");
+
+
+body
+.querySelectorAll(".kube-row")
+.forEach(
+row =>
+row.addEventListener(
+"click",
+() =>
+openResource(
+row.dataset.type,
+Number(row.dataset.id)
+)
+)
+);
+
+}
+
+
+function renderFindings() {
+
+const container =
+$("findingList");
+
+const recent =
+[...findings]
+.sort(
+(a,b) =>
+new Date(
+b.created_at ||
+b.updated_at ||
+0
+) -
+new Date(
+a.created_at ||
+a.updated_at ||
+0
+)
+)
+.slice(0,10);
+
+
+if (!recent.length) {
+
+container.innerHTML = `
+<div class="empty">
+No Kubernetes security findings available.
+</div>
+`;
+
+return;
+
+}
+
+
+container.innerHTML =
+recent
+.map(
+finding => `
+
+<div
+class="finding-item"
+data-id="${escapeHTML(finding.id)}"
+>
+
+<div class="finding-top">
+
+<span class="finding-title">
+${escapeHTML(
+finding.title ||
+finding.name ||
+finding.finding_type ||
+"Container security finding"
+)}
+</span>
+
+${severityHTML(
+finding.severity ||
+"unknown"
+)}
+
+</div>
+
+<div class="finding-detail">
+${escapeHTML(
+finding.description ||
+finding.resource_id ||
+"No description available."
+)}
+</div>
+
+</div>
+
+`
+)
+.join("");
+
+
+container
+.querySelectorAll(".finding-item")
+.forEach(
+item =>
+item.addEventListener(
+"click",
+() =>
+openFinding(
+Number(item.dataset.id)
+)
+)
+);
+
+}
+
+
+function updateHealth() {
+
+const open =
+findings.filter(
+item =>
+![
+"resolved",
+"closed",
+"remediated"
+].includes(
+normalize(item.status)
+)
+).length;
+
+
+const baseline =
+workloads.filter(
+item => {
+
+const current =
+normalize(
+item.current_state ||
+item.state ||
+item.status
+);
+
+const desired =
+normalize(
+item.desired_state ||
+item.baseline_state
+);
+
+return (
+current &&
+desired &&
+current !== desired
+);
+
+}
+).length;
+
+
+$("healthClusters")
+.textContent =
+clusters.length;
+
+$("healthImages")
+.textContent =
+images.length;
+
+$("healthWorkloads")
+.textContent =
+workloads.length;
+
+$("healthOpen")
+.textContent =
+Math.max(open,0);
+
+$("healthBaseline")
+.textContent =
+baseline;
+
+}
+
+
+function setDrawerBase(item,type) {
+
+const cluster =
+findCluster(item);
+
+const image =
+findImage(item);
+
+
+$("drawerTitle")
+.textContent =
+item.name ||
+item.workload_name ||
+item.cluster_name ||
+item.image_name ||
+item.repository ||
+"Kubernetes Resource";
+
+
+$("drawerUid")
+.textContent =
+item.workload_uid ||
+item.image_uid ||
+item.cluster_uid ||
+`K8S-${item.id}`;
+
+
+$("drawerResourceType")
+.textContent =
+type;
+
+$("drawerName")
+.textContent =
+item.name ||
+item.workload_name ||
+item.cluster_name ||
+item.image_name ||
+item.repository ||
+"—";
+
+$("drawerNamespace")
+.textContent =
+item.namespace ||
+item.repository ||
+item.registry ||
+"—";
+
+$("drawerCluster")
+.textContent =
+cluster?.name ||
+cluster?.cluster_uid ||
+item.cluster_name ||
+"—";
+
+$("drawerImage")
+.textContent =
+item.image ||
+item.image_name ||
+image?.name ||
+image?.repository ||
+"—";
+
+$("drawerDesired")
+.textContent =
+item.desired_state ||
+item.baseline_state ||
+"—";
+
+$("drawerCurrent")
+textContent =
+item.current_state ||
+item.state ||
+item.status ||
+item.phase ||
+"—";
+
+
+const current =
+normalize(
+item.current_state ||
+item.state ||
+item.status
+);
+
+const desired =
+normalize(
+item.desired_state ||
+item.baseline_state
+);
+
+
+$("drawerBaseline")
+innerHTML =
+(
+current &&
+desired &&
+current !== desired
+)
+? stateHTML("deviation")
+: stateHTML("aligned");
+
+}
+
+
+function matchingFinding(item) {
+
+const candidates =
+[
+item.resource_id,
+item.name,
+item.workload_name,
+item.image_name,
+item.image_uid,
+item.workload_uid
+]
+.map(normalize)
+.filter(Boolean);
+
+
+return findings.find(
+finding => {
+
+const values =
+[
+finding.resource_id,
+finding.resource,
+finding.workload_name,
+finding.image_name,
+finding.image_uid,
+finding.workload_uid
+]
+.map(normalize)
+.filter(Boolean);
+
+return values.some(
+value =>
+candidates.includes(value)
+);
+
+}
+);
+
+}
+
+
+function renderFindingBox(finding) {
+
+const box =
+$("drawerFinding");
+
+if (!finding) {
+
+box.className =
+"code-box";
+
+box.textContent =
+"No security finding is directly associated with this resource.";
+
+return;
+
+}
+
+
+box.className =
+"code-box";
+
+if (
+[
+"critical",
+"high"
+].includes(
+normalize(finding.severity)
+)
+) {
+
+box.classList.add("risk");
+
+}
+
+
+box.textContent =
+[
+`Finding: ${finding.title || finding.name || "—"}`,
+`Severity: ${finding.severity || "—"}`,
+`Status: ${finding.status || "—"}`,
+`Type: ${finding.finding_type || "—"}`,
+`Resource: ${finding.resource_id || "—"}`,
+`Description: ${finding.description || "—"}`,
+`Remediation: ${finding.remediation || finding.recommendation || "Review the affected image/workload and apply the approved remediation workflow."}`,
+`Created: ${formatDate(finding.created_at)}`,
+`Updated: ${formatDate(finding.updated_at)}`
+]
+.join("\n");
+
+}
+
+
+function openResource(type,id) {
+
+let collection;
+
+if (type === "workload") {
+collection = workloads;
+}
+
+else if (type === "image") {
+collection = images;
+}
+
+else {
+collection = clusters;
+}
+
+
+const item =
+collection.find(
+resource =>
+Number(resource.id) === id
+);
+
+if (!item) return;
+
+
+setDrawerBase(
+item,
+type
+);
+
+renderFindingBox(
+matchingFinding(item)
+);
+
+
+$("kubeDrawer")
+.classList.add("open");
+
+$("drawerBackdrop")
+.classList.add("open");
+
+}
+
+
+function openFinding(id) {
+
+const finding =
+findings.find(
+item =>
+Number(item.id) === id
+);
+
+if (!finding) return;
+
+
+const linkedWorkload =
+workloads.find(
+item =>
+[
+finding.workload_id,
+finding.resource_id
+]
+.map(String)
+.includes(
+String(item.id)
+) ||
+normalize(
+finding.resource_id
+) === normalize(
+item.name
+)
+);
+
+
+const linkedImage =
+images.find(
+item =>
+[
+finding.image_id,
+finding.resource_id
+]
+.map(String)
+.includes(
+String(item.id)
+) ||
+normalize(
+finding.resource_id
+) === normalize(
+item.name
+)
+);
+
+
+if (linkedWorkload) {
+
+openResource(
+"workload",
+linkedWorkload.id
+);
+
+renderFindingBox(
+finding
+);
+
+return;
+
+}
+
+
+if (linkedImage) {
+
+openResource(
+"image",
+linkedImage.id
+);
+
+renderFindingBox(
+finding
+);
+
+return;
+
+}
+
+
+$("drawerTitle")
+.textContent =
+finding.title ||
+finding.name ||
+"Kubernetes Security Finding";
+
+$("drawerUid")
+.textContent =
+finding.finding_uid ||
+`FINDING-${finding.id}`;
+
+$("drawerResourceType")
+.textContent =
+finding.finding_type ||
+"security finding";
+
+$("drawerName")
+.textContent =
+finding.resource_id ||
+"—";
+
+$("drawerNamespace")
+textContent =
+finding.namespace ||
+"—";
+
+$("drawerCluster")
+textContent =
+finding.cluster_name ||
+"—";
+
+$("drawerImage")
+textContent =
+finding.image_name ||
+"—";
+
+$("drawerDesired")
+textContent =
+"—";
+
+$("drawerCurrent")
+textContent =
+"—";
+
+$("drawerBaseline")
+innerHTML =
+stateHTML(
+finding.status ||
+"open"
+);
+
+renderFindingBox(
+finding
+);
+
+
+$("kubeDrawer")
+.classList.add("open");
+
+$("drawerBackdrop")
+.classList.add("open");
+
+}
+
+
+function closeDrawer() {
+
+$("kubeDrawer")
+.classList.remove("open");
+
+$("drawerBackdrop")
+.classList.remove("open");
+
+}
+
+
+$("searchInput")
+.addEventListener(
+"input",
+renderResources
+);
+
+$("resourceFilter")
+.addEventListener(
+"change",
+renderResources
+);
+
+$("stateFilter")
+.addEventListener(
+"change",
+renderResources
+);
+
+
+$("clearFilters")
+.addEventListener(
+"click",
+() => {
+
+$("searchInput").value = "";
+$("resourceFilter").value = "";
+$("stateFilter").value = "";
+
+renderResources();
+
+}
+);
+
+
+$("refreshButton")
+.addEventListener(
+"click",
+async () => {
+
+await loadKubernetes();
+
+showToast(
+"Kubernetes security refreshed."
+);
+
+}
+);
+
+
+$("refreshHeader")
+.addEventListener(
+"click",
+() =>
+$("refreshButton").click()
+);
+
+
+$("baselineButton")
+.addEventListener(
+"click",
+() =>
+showToast(
+"Baseline review focuses on workload desired-state versus observed runtime state."
+)
+);
+
+
+$("closeDrawer")
+.addEventListener(
+"click",
+closeDrawer
+);
+
+
+$("drawerBackdrop")
+.addEventListener(
+"click",
+closeDrawer
+);
+
+
+
+$("globalSearch")
+.addEventListener(
+"keydown",
+event => {
+
+if (
+event.key === "Enter"
+) {
+
+const query =
+event.target.value.trim();
+
+if (query) {
+
+window.location.href =
+`/frontend/pages/events.html?q=${encodeURIComponent(query)}`;
+
+}
+
+}
+
+}
+);
+
+
+loadKubernetes();
+
+
+setInterval(
+loadKubernetes,
+30000
+);
+
+})();
+</script>
+
+</body>
+</html>

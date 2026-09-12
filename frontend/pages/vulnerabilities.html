@@ -1,0 +1,2486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>PHOENIX | Vulnerability Management</title>
+
+    <link rel="stylesheet" href="/frontend/css/phoenix.css">
+    <link rel="stylesheet" href="/frontend/css/phoenix-theme.css?v=2">
+    
+
+    <style>
+        .module-page {
+            max-width: 1740px;
+            margin: auto;
+            padding: 25px 26px 40px;
+        }
+
+        .module-header {
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-end;
+            gap:20px;
+            margin-bottom:18px;
+        }
+
+        .eyebrow {
+            color:#4d91bd;
+            font-size:8px;
+            font-weight:800;
+            letter-spacing:.15em;
+            margin-bottom:5px;
+        }
+
+        .module-header h1 {
+            margin:0;
+            font-size:25px;
+        }
+
+        .module-header p {
+            margin:6px 0 0;
+            color:var(--muted);
+            font-size:11px;
+        }
+
+        .module-actions {
+            display:flex;
+            gap:7px;
+        }
+
+        .module-button {
+            height:35px;
+            padding:0 12px;
+            border:1px solid var(--border);
+            border-radius:6px;
+            background:#0b1c2b;
+            color:#a9bbc6;
+            cursor:pointer;
+            font-size:9px;
+            font-weight:700;
+        }
+
+        .module-button:hover {
+            background:#102b3e;
+            border-color:#315d78;
+            color:white;
+        }
+
+        .module-button.primary {
+            background:#0d3550;
+            border-color:#246d9d;
+            color:#8dceff;
+        }
+
+        .risk-summary {
+            display:grid;
+            grid-template-columns:repeat(6,1fr);
+            gap:9px;
+            margin-bottom:12px;
+        }
+
+        .summary-item {
+            min-height:75px;
+            padding:12px 14px;
+            border:1px solid var(--border);
+            border-radius:7px;
+            background:#0b1d2b;
+        }
+
+        .summary-item span {
+            display:block;
+            color:#688294;
+            font-size:8px;
+            text-transform:uppercase;
+            letter-spacing:.07em;
+        }
+
+        .summary-item strong {
+            display:block;
+            margin-top:8px;
+            font-size:21px;
+        }
+
+        .summary-item.critical strong {
+            color:#ff5c70;
+        }
+
+        .summary-item.high strong {
+            color:#ff9d54;
+        }
+
+        .summary-item.medium strong {
+            color:#e9c45d;
+        }
+
+        .summary-item.remediated strong {
+            color:#58d9a9;
+        }
+
+        .summary-item.exposed strong {
+            color:#64baff;
+        }
+
+        .workspace {
+            display:grid;
+            grid-template-columns:minmax(0,1fr) 370px;
+            gap:12px;
+        }
+
+        .panel {
+            border:1px solid var(--border);
+            border-radius:8px;
+            background:#0b1d2b;
+            overflow:hidden;
+        }
+
+        .toolbar {
+            display:grid;
+            grid-template-columns:minmax(260px,1fr) 125px 125px 125px auto;
+            gap:7px;
+            padding:12px;
+            border-bottom:1px solid var(--border);
+            background:#091a28;
+        }
+
+        .toolbar input,
+        .toolbar select {
+            height:35px;
+            border:1px solid var(--border);
+            border-radius:6px;
+            background:#0b2030;
+            color:#c7d6de;
+            outline:none;
+            padding:0 10px;
+            font-size:9px;
+        }
+
+        .toolbar input:focus,
+        .toolbar select:focus {
+            border-color:#2d79a6;
+        }
+
+        .table-meta {
+            display:flex;
+            gap:18px;
+            padding:9px 13px;
+            color:#617b8d;
+            border-bottom:1px solid var(--border-soft);
+            font-size:8px;
+        }
+
+        .table-meta strong {
+            color:#cbd8df;
+        }
+
+        .vuln-row {
+            cursor:pointer;
+        }
+
+        .vuln-row:hover {
+            background:#102b3d;
+        }
+
+        .vuln-row.selected {
+            background:#102f43;
+            box-shadow:inset 2px 0 #2d9fff;
+        }
+
+        .vuln-id {
+            color:#4aaeff;
+            font-family:ui-monospace,monospace;
+            font-size:8px;
+            font-weight:750;
+        }
+
+        .vuln-title {
+            margin-top:4px;
+            color:#d4e1e7;
+            font-size:9px;
+            font-weight:700;
+        }
+
+        .vuln-product {
+            margin-top:3px;
+            color:#637e8e;
+            font-size:7px;
+        }
+
+        .severity {
+            display:inline-flex;
+            align-items:center;
+            padding:4px 6px;
+            border-radius:4px;
+            border:1px solid #294b61;
+            background:#10293a;
+            color:#a8becb;
+            font-size:8px;
+            text-transform:uppercase;
+            font-weight:700;
+        }
+
+        .severity.critical {
+            border-color:#67323c;
+            color:#ff687a;
+            background:#27171b;
+        }
+
+        .severity.high {
+            border-color:#65432e;
+            color:#ffae70;
+            background:#2b2018;
+        }
+
+        .severity.medium {
+            border-color:#5d512d;
+            color:#e8cc6b;
+            background:#282518;
+        }
+
+        .severity.low {
+            border-color:#28506a;
+            color:#78b7db;
+        }
+
+        .risk-score {
+            font-family:ui-monospace,monospace;
+            font-weight:800;
+        }
+
+        .risk-score.critical {
+            color:#ff6678;
+        }
+
+        .risk-score.high {
+            color:#ffae70;
+        }
+
+        .risk-score.medium {
+            color:#e7ca66;
+        }
+
+        .risk-score.low {
+            color:#77b8dc;
+        }
+
+        .asset-chip {
+            display:inline-block;
+            padding:3px 5px;
+            border:1px solid #23465b;
+            border-radius:3px;
+            color:#8fa8b7;
+            font-size:7px;
+        }
+
+        .status {
+            display:inline-flex;
+            padding:4px 6px;
+            border-radius:4px;
+            border:1px solid #294b61;
+            color:#9db7c6;
+            background:#10293a;
+            font-size:7px;
+            text-transform:uppercase;
+        }
+
+        .status.open,
+        .status.detected {
+            color:#ffad70;
+            border-color:#62432f;
+            background:#291e18;
+        }
+
+        .status.remediated,
+        .status.resolved {
+            color:#64d6aa;
+            border-color:#275744;
+            background:#0d2821;
+        }
+
+        .status.accepted {
+            color:#d5c36b;
+            border-color:#5b502d;
+            background:#282417;
+        }
+
+        .side-section + .side-section {
+            border-top:1px solid var(--border);
+        }
+
+        .section-header {
+            padding:14px;
+            border-bottom:1px solid var(--border);
+        }
+
+        .section-header h2 {
+            margin:0;
+            font-size:12px;
+        }
+
+        .section-header p {
+            margin:4px 0 0;
+            color:#657f90;
+            font-size:8px;
+        }
+
+        .risk-bars {
+            padding:12px 13px;
+        }
+
+        .risk-line {
+            margin-bottom:13px;
+        }
+
+        .risk-line:last-child {
+            margin-bottom:0;
+        }
+
+        .risk-line-top {
+            display:flex;
+            justify-content:space-between;
+            color:#9db1bc;
+            font-size:8px;
+            margin-bottom:5px;
+        }
+
+        .risk-line-top strong {
+            color:#d0dce2;
+        }
+
+        .risk-track {
+            height:5px;
+            border-radius:4px;
+            background:#132b3b;
+            overflow:hidden;
+        }
+
+        .risk-fill {
+            height:100%;
+            width:0;
+            border-radius:4px;
+            background:#4b91bc;
+        }
+
+        .inventory-health {
+            padding:12px 13px;
+        }
+
+        .health-row {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:8px 0;
+            border-bottom:1px solid rgba(24,56,77,.5);
+            color:#78909f;
+            font-size:8px;
+        }
+
+        .health-row:last-child {
+            border-bottom:0;
+        }
+
+        .health-row strong {
+            color:#c9d7de;
+        }
+
+        .empty {
+            min-height:130px;
+            display:grid;
+            place-items:center;
+            color:#60798a;
+            font-size:9px;
+            padding:15px;
+            text-align:center;
+        }
+
+        .drawer-backdrop {
+            position:fixed;
+            inset:0;
+            z-index:80;
+            background:rgba(0,0,0,.48);
+            opacity:0;
+            pointer-events:none;
+            transition:opacity .2s;
+        }
+
+        .drawer-backdrop.open {
+            opacity:1;
+            pointer-events:auto;
+        }
+
+        .drawer {
+            position:fixed;
+            top:0;
+            right:0;
+            z-index:90;
+            width:min(700px,95vw);
+            height:100vh;
+            overflow-y:auto;
+            background:#071724;
+            border-left:1px solid #244b63;
+            box-shadow:-20px 0 60px rgba(0,0,0,.45);
+            transform:translateX(100%);
+            transition:transform .22s ease;
+        }
+
+        .drawer.open {
+            transform:translateX(0);
+        }
+
+        .drawer-header {
+            position:sticky;
+            top:0;
+            z-index:2;
+            padding:16px;
+            background:#091b2a;
+            border-bottom:1px solid var(--border);
+        }
+
+        .drawer-header-top {
+            display:flex;
+            justify-content:space-between;
+            gap:15px;
+        }
+
+        .drawer-title {
+            margin:3px 0;
+            font-size:17px;
+        }
+
+        .drawer-uid {
+            color:#4aaeff;
+            font-family:ui-monospace,monospace;
+            font-size:8px;
+        }
+
+        .drawer-close {
+            width:32px;
+            height:32px;
+            border:1px solid var(--border);
+            border-radius:6px;
+            background:#0c2130;
+            color:#9eb2bd;
+            cursor:pointer;
+        }
+
+        .drawer-body {
+            padding:13px;
+        }
+
+        .drawer-section {
+            margin-bottom:10px;
+            border:1px solid var(--border);
+            border-radius:7px;
+            background:#0a1c2a;
+            overflow:hidden;
+        }
+
+        .drawer-section-title {
+            padding:10px 12px;
+            border-bottom:1px solid var(--border);
+            color:#d3dfe5;
+            font-size:10px;
+            font-weight:750;
+        }
+
+        .context-grid {
+            display:grid;
+            grid-template-columns:145px 1fr;
+        }
+
+        .context-grid div {
+            padding:8px 10px;
+            border-bottom:1px solid rgba(24,56,77,.48);
+            font-size:9px;
+        }
+
+        .context-grid div:nth-child(odd) {
+            color:#637d8d;
+        }
+
+        .context-grid div:nth-child(even) {
+            color:#c8d5dc;
+            word-break:break-word;
+        }
+
+        .remediation-box {
+            padding:12px;
+        }
+
+        .remediation-box textarea {
+            width:100%;
+            min-height:90px;
+            box-sizing:border-box;
+            resize:vertical;
+            padding:9px;
+            border:1px solid var(--border);
+            border-radius:5px;
+            background:#081b29;
+            color:#c8d5dc;
+            outline:none;
+            font:8px/1.5 ui-monospace,monospace;
+        }
+
+        .remediation-buttons {
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:7px;
+            margin-top:9px;
+        }
+
+        .remediation-buttons button {
+            height:35px;
+            border:1px solid #28536c;
+            border-radius:6px;
+            background:#0d2638;
+            color:#bdd0da;
+            cursor:pointer;
+            font-size:8px;
+            font-weight:750;
+        }
+
+        .remediation-buttons button:hover {
+            background:#12334a;
+            color:white;
+        }
+
+        .remediation-buttons .verify {
+            border-color:#28634d;
+            color:#70d7ae;
+        }
+
+        .toast {
+            position:fixed;
+            right:22px;
+            bottom:22px;
+            z-index:200;
+            max-width:380px;
+            padding:10px 13px;
+            border:1px solid #285b77;
+            border-radius:6px;
+            background:#0a2232;
+            color:#b9d2df;
+            box-shadow:0 10px 30px rgba(0,0,0,.35);
+            font-size:9px;
+            opacity:0;
+            transform:translateY(10px);
+            pointer-events:none;
+            transition:.2s;
+        }
+
+        .toast.show {
+            opacity:1;
+            transform:translateY(0);
+        }
+
+        @media(max-width:1250px) {
+            .risk-summary {
+                grid-template-columns:repeat(3,1fr);
+            }
+
+            .workspace {
+                grid-template-columns:1fr;
+            }
+        }
+
+        @media(max-width:900px) {
+            .toolbar {
+                grid-template-columns:1fr 1fr;
+            }
+        }
+
+        @media(max-width:600px) {
+            .module-page {
+                padding:18px 11px 30px;
+            }
+
+            .module-header {
+                flex-direction:column;
+                align-items:flex-start;
+            }
+
+            .risk-summary {
+                grid-template-columns:repeat(2,1fr);
+            }
+
+            .toolbar {
+                grid-template-columns:1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header class="topbar">
+
+    <a class="brand" href="/frontend/">
+
+        <div class="brand-symbol">
+            <span>P</span>
+        </div>
+
+        <div class="brand-text">
+            <strong>PHOENIX</strong>
+            <span>Autonomous Enterprise Cyber Defense Platform</span>
+        </div>
+
+    </a>
+
+    <div class="global-search">
+
+        <span class="search-icon">⌕</span>
+
+        <input
+            id="globalSearch"
+            type="search"
+            placeholder="Search events, incidents, assets, IOCs..."
+        >
+
+        <kbd>/</kbd>
+
+    </div>
+
+    <div class="header-actions">
+
+        <button
+            class="header-button"
+            id="refreshHeader"
+        >
+            ↻
+        </button>
+
+        <button class="header-button">
+            ♢
+            <span class="notification-dot"></span>
+        </button>
+
+        <div class="header-divider"></div>
+
+        <div class="analyst-menu">
+
+            <div class="analyst-avatar">
+                A
+            </div>
+
+            <div class="analyst-info">
+                <strong>Analyst</strong>
+                <span>SOC Analyst</span>
+            </div>
+
+            <span class="chevron">⌄</span>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<nav class="primary-nav">
+
+    <a class="nav-item" href="/frontend/">
+        Security Operations
+    </a>
+
+    <a class="nav-item" href="/frontend/pages/incidents.html">
+        Incidents
+    </a>
+
+    <a class="nav-item" href="/frontend/pages/detections.html">
+        Detections
+    </a>
+
+    <a class="nav-item" href="/frontend/pages/intelligence.html">
+        Threat Intelligence
+    </a>
+
+    <a class="nav-item" href="/frontend/pages/assets.html">
+        Assets
+    </a>
+
+    <a class="nav-item" href="/frontend/pages/response.html">
+        Response
+    </a>
+
+    <button class="nav-more" id="moreButton">
+        More ⌄
+    </button>
+
+    <div class="more-menu" id="moreMenu">
+
+        <div class="more-column">
+
+            <span class="menu-heading">
+                Protect
+            </span>
+
+            <a class="active" href="/frontend/pages/vulnerabilities.html">
+                Vulnerabilities
+            </a>
+
+            <a href="/frontend/pages/identity.html">
+                Identity
+            </a>
+
+            <a href="/frontend/pages/zero-trust.html">
+                Zero Trust
+            </a>
+
+        </div>
+
+        <div class="more-column">
+
+            <span class="menu-heading">
+                Investigate
+            </span>
+
+            <a href="/frontend/pages/endpoints.html">
+                Endpoints
+            </a>
+
+            <a href="/frontend/pages/hunting.html">
+                Threat Hunting
+            </a>
+
+            <a href="/frontend/pages/forensics.html">
+                Forensics
+            </a>
+
+            <a href="/frontend/pages/cases.html">
+                Cases
+            </a>
+
+        </div>
+
+        <div class="more-column">
+
+            <span class="menu-heading">
+                Infrastructure
+            </span>
+
+            <a href="/frontend/pages/cloud.html">
+                Cloud
+            </a>
+
+            <a href="/frontend/pages/kubernetes.html">
+                Kubernetes
+            </a>
+
+            <a href="/frontend/pages/dlp.html">
+                DLP
+            </a>
+
+        </div>
+
+        <div class="more-column">
+
+            <span class="menu-heading">
+                Governance
+            </span>
+
+            <a href="/frontend/pages/recovery.html">
+                Recovery
+            </a>
+
+            <a href="/frontend/pages/risk.html">
+                Risk
+            </a>
+
+            <a href="/frontend/pages/compliance.html">
+                Compliance
+            </a>
+
+            <a href="/frontend/pages/reports.html">
+                Reports
+            </a>
+
+        </div>
+
+    </div>
+
+</nav>
+
+
+<main class="module-page">
+
+<section class="module-header">
+
+    <div>
+
+        <div class="eyebrow">
+            EXPOSURE MANAGEMENT
+        </div>
+
+        <h1>
+            Vulnerability Management
+        </h1>
+
+        <p>
+            Prioritize exploitable exposure by asset criticality, vulnerability severity and business risk.
+        </p>
+
+    </div>
+
+    <div class="module-actions">
+
+        <button
+            class="module-button"
+            id="refreshButton"
+        >
+            ↻ Refresh
+        </button>
+
+        <button
+            class="module-button primary"
+            id="remediationGuide"
+        >
+            Remediation Workflow
+        </button>
+
+    </div>
+
+</section>
+
+
+<section class="risk-summary">
+
+    <div class="summary-item">
+        <span>Total Vulnerabilities</span>
+        <strong id="totalVulnerabilities">0</strong>
+    </div>
+
+    <div class="summary-item critical">
+        <span>Critical</span>
+        <strong id="criticalVulnerabilities">0</strong>
+    </div>
+
+    <div class="summary-item high">
+        <span>High</span>
+        <strong id="highVulnerabilities">0</strong>
+    </div>
+
+    <div class="summary-item medium">
+        <span>Medium</span>
+        <strong id="mediumVulnerabilities">0</strong>
+    </div>
+
+    <div class="summary-item remediated">
+        <span>Remediated</span>
+        <strong id="remediatedVulnerabilities">0</strong>
+    </div>
+
+    <div class="summary-item exposed">
+        <span>Open Exposure</span>
+        <strong id="openExposure">0</strong>
+    </div>
+
+</section>
+
+
+<section class="workspace">
+
+
+<article class="panel">
+
+    <div class="toolbar">
+
+        <input
+            id="searchInput"
+            type="search"
+            placeholder="Search CVE, vulnerability, product..."
+        >
+
+        <select id="severityFilter">
+
+            <option value="">
+                All Severity
+            </option>
+
+            <option value="critical">
+                Critical
+            </option>
+
+            <option value="high">
+                High
+            </option>
+
+            <option value="medium">
+                Medium
+            </option>
+
+            <option value="low">
+                Low
+            </option>
+
+        </select>
+
+        <select id="statusFilter">
+
+            <option value="">
+                All Status
+            </option>
+
+            <option value="open">
+                Open
+            </option>
+
+            <option value="detected">
+                Detected
+            </option>
+
+            <option value="remediated">
+                Remediated
+            </option>
+
+            <option value="resolved">
+                Resolved
+            </option>
+
+            <option value="accepted">
+                Accepted
+            </option>
+
+        </select>
+
+        <select id="sortFilter">
+
+            <option value="risk">
+                Risk Priority
+            </option>
+
+            <option value="severity">
+                Severity
+            </option>
+
+            <option value="newest">
+                Newest
+            </option>
+
+        </select>
+
+        <button
+            class="module-button"
+            id="clearFilters"
+        >
+            Clear
+        </button>
+
+    </div>
+
+
+    <div class="table-meta">
+
+        <span>
+            Findings:
+            <strong id="visibleCount">0</strong>
+        </span>
+
+        <span>
+            Priority:
+            <strong>ASSET + CVSS RISK</strong>
+        </span>
+
+        <span>
+            Workflow:
+            <strong>DETECT → REMEDIATE → VERIFY</strong>
+        </span>
+
+    </div>
+
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Vulnerability
+                    </th>
+
+                    <th>
+                        Severity
+                    </th>
+
+                    <th>
+                        CVSS
+                    </th>
+
+                    <th>
+                        Risk
+                    </th>
+
+                    <th>
+                        Asset
+                    </th>
+
+                    <th>
+                        Status
+                    </th>
+
+                    <th>
+                        Detected
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="vulnerabilityRows">
+
+                <tr>
+
+                    <td colspan="7">
+
+                        <div class="table-loading">
+                            Loading vulnerability inventory...
+                        </div>
+
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</article>
+
+
+<aside class="panel">
+
+    <section class="side-section">
+
+        <header class="section-header">
+
+            <h2>
+                Risk Distribution
+            </h2>
+
+            <p>
+                Current vulnerability severity profile
+            </p>
+
+        </header>
+
+        <div class="risk-bars">
+
+            <div class="risk-line">
+
+                <div class="risk-line-top">
+                    <span>Critical</span>
+                    <strong id="criticalPct">0%</strong>
+                </div>
+
+                <div class="risk-track">
+                    <div
+                        class="risk-fill"
+                        id="criticalBar"
+                    ></div>
+                </div>
+
+            </div>
+
+
+            <div class="risk-line">
+
+                <div class="risk-line-top">
+                    <span>High</span>
+                    <strong id="highPct">0%</strong>
+                </div>
+
+                <div class="risk-track">
+                    <div
+                        class="risk-fill"
+                        id="highBar"
+                    ></div>
+                </div>
+
+            </div>
+
+
+            <div class="risk-line">
+
+                <div class="risk-line-top">
+                    <span>Medium</span>
+                    <strong id="mediumPct">0%</strong>
+                </div>
+
+                <div class="risk-track">
+                    <div
+                        class="risk-fill"
+                        id="mediumBar"
+                    ></div>
+                </div>
+
+            </div>
+
+
+            <div class="risk-line">
+
+                <div class="risk-line-top">
+                    <span>Low</span>
+                    <strong id="lowPct">0%</strong>
+                </div>
+
+                <div class="risk-track">
+                    <div
+                        class="risk-fill"
+                        id="lowBar"
+                    ></div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <section class="side-section">
+
+        <header class="section-header">
+
+            <h2>
+                Exposure Health
+            </h2>
+
+            <p>
+                Operational vulnerability posture
+            </p>
+
+        </header>
+
+
+        <div class="inventory-health">
+
+            <div class="health-row">
+                <span>Unremediated</span>
+                <strong id="healthOpen">0</strong>
+            </div>
+
+            <div class="health-row">
+                <span>Remediated</span>
+                <strong id="healthRemediated">0</strong>
+            </div>
+
+            <div class="health-row">
+                <span>Exceptions</span>
+                <strong id="healthExceptions">0</strong>
+            </div>
+
+            <div class="health-row">
+                <span>Critical Exposure</span>
+                <strong id="healthCritical">0</strong>
+            </div>
+
+        </div>
+
+    </section>
+
+</aside>
+
+
+</section>
+
+</main>
+
+</div>
+
+
+<div
+    class="drawer-backdrop"
+    id="drawerBackdrop"
+></div>
+
+
+<aside
+    class="drawer"
+    id="vulnerabilityDrawer"
+>
+
+    <header class="drawer-header">
+
+        <div class="drawer-header-top">
+
+            <div>
+
+                <div class="eyebrow">
+                    VULNERABILITY FINDING
+                </div>
+
+                <h2
+                    class="drawer-title"
+                    id="drawerTitle"
+                >
+                    Finding
+                </h2>
+
+                <div
+                    class="drawer-uid"
+                    id="drawerUid"
+                >
+                    —
+                </div>
+
+            </div>
+
+            <button
+                class="drawer-close"
+                id="closeDrawer"
+            >
+                ×
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <div class="drawer-body">
+
+
+        <section class="drawer-section">
+
+            <div class="drawer-section-title">
+                Finding Context
+            </div>
+
+            <div class="context-grid">
+
+                <div>Severity</div>
+                <div id="drawerSeverity">—</div>
+
+                <div>CVSS</div>
+                <div id="drawerCvss">—</div>
+
+                <div>Risk Score</div>
+                <div id="drawerRisk">—</div>
+
+                <div>Product</div>
+                <div id="drawerProduct">—</div>
+
+                <div>Affected Version</div>
+                <div id="drawerVersion">—</div>
+
+                <div>Status</div>
+                <div id="drawerStatus">—</div>
+
+                <div>Detected</div>
+                <div id="drawerDetected">—</div>
+
+                <div>Remediated</div>
+                <div id="drawerRemediated">—</div>
+
+            </div>
+
+        </section>
+
+
+        <section class="drawer-section">
+
+            <div class="drawer-section-title">
+                Description
+            </div>
+
+            <div
+                class="drawer-note"
+                id="drawerDescription"
+            >
+                No description available.
+            </div>
+
+        </section>
+
+
+        <section class="drawer-section">
+
+            <div class="drawer-section-title">
+                Remediation
+            </div>
+
+            <div class="remediation-box">
+
+                <div
+                    class="drawer-note"
+                    id="drawerRemediation"
+                >
+                    No remediation guidance available.
+                </div>
+
+                <div style="height:10px"></div>
+
+                <textarea
+                    id="remediationEvidence"
+                    placeholder="Optional remediation evidence / verification notes..."
+                ></textarea>
+
+                <div class="remediation-buttons">
+
+                    <button id="markRemediated">
+                        Mark Remediated
+                    </button>
+
+                    <button
+                        class="verify"
+                        id="verifyRemediation"
+                    >
+                        Verify Fix
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</aside>
+
+
+<div
+    class="toast"
+    id="toast"
+></div>
+
+
+<script src="/frontend/js/api.js"></script>
+<script src="/frontend/js/auth-guard.js"></script>
+<script src="/frontend/js/navigation.js"></script>
+
+<script>
+(() => {
+
+    "use strict";
+
+
+    const $ =
+        id => document.getElementById(id);
+
+
+    let vulnerabilities = [];
+    let selectedVulnerability = null;
+
+
+    function escapeHTML(value) {
+
+        return String(value ?? "")
+            .replace(
+                /[&<>"']/g,
+                char =>
+                    ({
+                        "&":"&amp;",
+                        "<":"&lt;",
+                        ">":"&gt;",
+                        '"':"&quot;",
+                        "'":"&#039;"
+                    }[char])
+            );
+
+    }
+
+
+    function normalize(value) {
+
+        return String(
+            value ?? ""
+        )
+        .trim()
+        .toLowerCase();
+
+    }
+
+
+    function formatDate(value) {
+
+        if (!value) {
+            return "—";
+        }
+
+
+        const date =
+            new Date(value);
+
+
+        if (
+            Number.isNaN(
+                date.getTime()
+            )
+        ) {
+            return escapeHTML(value);
+        }
+
+
+        return date.toLocaleString(
+            [],
+            {
+                month:"short",
+                day:"2-digit",
+                hour:"2-digit",
+                minute:"2-digit"
+            }
+        );
+
+    }
+
+
+    function unwrap(data) {
+
+        if (Array.isArray(data)) {
+            return data;
+        }
+
+
+        for (
+            const key of [
+                "vulnerabilities",
+                "items",
+                "data"
+            ]
+        ) {
+
+            if (
+                Array.isArray(
+                    data?.[key]
+                )
+            ) {
+                return data[key];
+            }
+
+        }
+
+
+        return [];
+
+    }
+
+
+    function showToast(message) {
+
+        const toast =
+            $("toast");
+
+
+        toast.textContent =
+            message;
+
+
+        toast.classList.add(
+            "show"
+        );
+
+
+        setTimeout(
+            () =>
+                toast.classList.remove(
+                    "show"
+                ),
+            2600
+        );
+
+    }
+
+
+    function severityHTML(value) {
+
+        const severity =
+            normalize(
+                value ||
+                "unknown"
+            );
+
+
+        return `
+            <span class="severity ${escapeHTML(severity)}">
+                ${escapeHTML(
+                    value ||
+                    "unknown"
+                )}
+            </span>
+        `;
+
+    }
+
+
+    function statusHTML(value) {
+
+        const status =
+            normalize(
+                value ||
+                "open"
+            );
+
+
+        return `
+            <span class="status ${escapeHTML(status)}">
+                ${escapeHTML(
+                    value ||
+                    "open"
+                )}
+            </span>
+        `;
+
+    }
+
+
+    function riskClass(score) {
+
+        const value =
+            Number(score || 0);
+
+
+        if (value >= 80) {
+            return "critical";
+        }
+
+        if (value >= 60) {
+            return "high";
+        }
+
+        if (value >= 35) {
+            return "medium";
+        }
+
+        return "low";
+
+    }
+
+
+    async function loadVulnerabilities() {
+
+        try {
+
+            const data =
+                await PhoenixAPI.request(
+                    "/api/vulnerabilities"
+                );
+
+
+            vulnerabilities =
+                unwrap(data);
+
+
+        } catch (error) {
+
+            vulnerabilities = [];
+
+
+            showToast(
+                `Vulnerability inventory unavailable: ${error.message}`
+            );
+
+        }
+
+
+        updateSummary();
+        renderTable();
+        updateRiskDistribution();
+
+    }
+
+
+    function updateSummary() {
+
+        const count =
+            severity =>
+                vulnerabilities.filter(
+                    item =>
+                        normalize(
+                            item.severity
+                        ) === severity
+                ).length;
+
+
+        const isClosed =
+            item =>
+                [
+                    "remediated",
+                    "resolved"
+                ].includes(
+                    normalize(
+                        item.status
+                    )
+                );
+
+
+        $("totalVulnerabilities")
+            .textContent =
+            vulnerabilities.length;
+
+
+        $("criticalVulnerabilities")
+            .textContent =
+            count("critical");
+
+
+        $("highVulnerabilities")
+            .textContent =
+            count("high");
+
+
+        $("mediumVulnerabilities")
+            .textContent =
+            count("medium");
+
+
+        $("remediatedVulnerabilities")
+            .textContent =
+            vulnerabilities.filter(
+                isClosed
+            ).length;
+
+
+        $("openExposure")
+            .textContent =
+            vulnerabilities.filter(
+                item =>
+                    !isClosed(item)
+            ).length;
+
+
+        $("healthOpen")
+            .textContent =
+            vulnerabilities.filter(
+                item =>
+                    !isClosed(item)
+            ).length;
+
+
+        $("healthRemediated")
+            .textContent =
+            vulnerabilities.filter(
+                isClosed
+            ).length;
+
+
+        $("healthExceptions")
+            .textContent =
+            vulnerabilities.filter(
+                item =>
+                    normalize(
+                        item.status
+                    ) === "accepted"
+            ).length;
+
+
+        $("healthCritical")
+            .textContent =
+            vulnerabilities.filter(
+                item =>
+                    normalize(
+                        item.severity
+                    ) === "critical" &&
+                    !isClosed(item)
+            ).length;
+
+    }
+
+
+    function filteredData() {
+
+        const query =
+            normalize(
+                $("searchInput").value
+            );
+
+
+        const severity =
+            normalize(
+                $("severityFilter").value
+            );
+
+
+        const status =
+            normalize(
+                $("statusFilter").value
+            );
+
+
+        const sort =
+            $("sortFilter").value;
+
+
+        let result =
+            vulnerabilities.filter(
+                item => {
+
+                    const searchable =
+                        [
+                            item.uid,
+                            item.vulnerability_uid,
+                            item.cve,
+                            item.title,
+                            item.description,
+                            item.affected_product,
+                            item.affected_version
+                        ]
+                        .join(" ")
+                        .toLowerCase();
+
+
+                    if (
+                        query &&
+                        !searchable.includes(
+                            query
+                        )
+                    ) {
+                        return false;
+                    }
+
+
+                    if (
+                        severity &&
+                        normalize(
+                            item.severity
+                        ) !== severity
+                    ) {
+                        return false;
+                    }
+
+
+                    if (
+                        status &&
+                        normalize(
+                            item.status
+                        ) !== status
+                    ) {
+                        return false;
+                    }
+
+
+                    return true;
+
+                }
+            );
+
+
+        if (
+            sort === "severity"
+        ) {
+
+            const order = {
+                critical:4,
+                high:3,
+                medium:2,
+                low:1
+            };
+
+
+            result.sort(
+                (a,b) =>
+                    (
+                        order[
+                            normalize(
+                                b.severity
+                            )
+                        ] || 0
+                    ) -
+                    (
+                        order[
+                            normalize(
+                                a.severity
+                            )
+                        ] || 0
+                    )
+            );
+
+        } else if (
+            sort === "newest"
+        ) {
+
+            result.sort(
+                (a,b) =>
+                    new Date(
+                        b.created_at ||
+                        b.detected_at ||
+                        0
+                    ) -
+                    new Date(
+                        a.created_at ||
+                        a.detected_at ||
+                        0
+                    )
+            );
+
+        } else {
+
+            result.sort(
+                (a,b) =>
+                    Number(
+                        b.risk_score || 0
+                    ) -
+                    Number(
+                        a.risk_score || 0
+                    )
+            );
+
+        }
+
+
+        return result;
+
+    }
+
+
+    function renderTable() {
+
+        const body =
+            $("vulnerabilityRows");
+
+
+        const items =
+            filteredData();
+
+
+        $("visibleCount")
+            .textContent =
+            items.length;
+
+
+        if (!items.length) {
+
+            body.innerHTML = `
+                <tr>
+                    <td colspan="7">
+                        <div class="empty">
+                            ${
+                                vulnerabilities.length
+                                    ? "No findings match the current filters."
+                                    : "No vulnerability findings are currently available."
+                            }
+                        </div>
+                    </td>
+                </tr>
+            `;
+
+            return;
+
+        }
+
+
+        body.innerHTML =
+            items
+                .map(
+                    item => {
+
+                        const score =
+                            Number(
+                                item.risk_score ||
+                                0
+                            );
+
+
+                        const risk =
+                            riskClass(score);
+
+
+                        return `
+
+                            <tr
+                                class="vuln-row"
+                                data-id="${escapeHTML(
+                                    item.id
+                                )}"
+                            >
+
+                                <td>
+
+                                    <div class="vuln-id">
+                                        ${escapeHTML(
+                                            item.vulnerability_uid ||
+                                            item.uid ||
+                                            item.cve ||
+                                            `VULN-${item.id}`
+                                        )}
+                                    </div>
+
+                                    <div class="vuln-title">
+                                        ${escapeHTML(
+                                            item.title ||
+                                            "Vulnerability finding"
+                                        )}
+                                    </div>
+
+                                    <div class="vuln-product">
+                                        ${escapeHTML(
+                                            item.affected_product ||
+                                            "Product not specified"
+                                        )}
+                                    </div>
+
+                                </td>
+
+                                <td>
+                                    ${severityHTML(
+                                        item.severity
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${escapeHTML(
+                                        item.cvss ??
+                                        "—"
+                                    )}
+                                </td>
+
+                                <td>
+                                    <span class="risk-score ${risk}">
+                                        ${escapeHTML(
+                                            score
+                                        )}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    ${
+                                        item.asset_id
+                                            ? `<span class="asset-chip">ASSET-${escapeHTML(item.asset_id)}</span>`
+                                            : "—"
+                                    }
+                                </td>
+
+                                <td>
+                                    ${statusHTML(
+                                        item.status
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${formatDate(
+                                        item.detected_at ||
+                                        item.created_at
+                                    )}
+                                </td>
+
+                            </tr>
+
+                        `;
+
+                    }
+                )
+                .join("");
+
+
+        body
+            .querySelectorAll(
+                ".vuln-row"
+            )
+            .forEach(
+                row => {
+
+                    row.addEventListener(
+                        "click",
+                        () =>
+                            openVulnerability(
+                                Number(
+                                    row.dataset.id
+                                )
+                            )
+                    );
+
+                }
+            );
+
+    }
+
+
+    function updateRiskDistribution() {
+
+        const total =
+            vulnerabilities.length;
+
+
+        const percentages = {};
+
+
+        [
+            "critical",
+            "high",
+            "medium",
+            "low"
+        ]
+        .forEach(
+            severity => {
+
+                const count =
+                    vulnerabilities.filter(
+                        item =>
+                            normalize(
+                                item.severity
+                            ) === severity
+                    ).length;
+
+
+                percentages[severity] =
+                    total
+                        ? Math.round(
+                            count /
+                            total *
+                            100
+                        )
+                        : 0;
+
+            }
+        );
+
+
+        [
+            "critical",
+            "high",
+            "medium",
+            "low"
+        ]
+        .forEach(
+            severity => {
+
+                $(
+                    `${severity}Pct`
+                )
+                .textContent =
+                    `${percentages[severity]}%`;
+
+
+                $(
+                    `${severity}Bar`
+                )
+                .style.width =
+                    `${percentages[severity]}%`;
+
+            }
+        );
+
+    }
+
+
+    async function openVulnerability(id) {
+
+        let item =
+            vulnerabilities.find(
+                value =>
+                    Number(
+                        value.id
+                    ) === id
+            );
+
+
+        if (!item) {
+            return;
+        }
+
+
+        try {
+
+            const fresh =
+                await PhoenixAPI.request(
+                    `/api/vulnerabilities/${id}`
+                );
+
+
+            item =
+                fresh?.vulnerability ||
+                fresh;
+
+        } catch {
+
+            /*
+             * Inventory object remains usable
+             * if detail retrieval is unavailable.
+             */
+
+        }
+
+
+        selectedVulnerability =
+            item;
+
+
+        $("drawerTitle")
+            .textContent =
+            item.title ||
+            "Vulnerability Finding";
+
+
+        $("drawerUid")
+            .textContent =
+            item.vulnerability_uid ||
+            item.uid ||
+            item.cve ||
+            `VULN-${item.id}`;
+
+
+        $("drawerSeverity")
+            .innerHTML =
+            severityHTML(
+                item.severity
+            );
+
+
+        $("drawerCvss")
+            .textContent =
+            item.cvss ??
+            "—";
+
+
+        const score =
+            Number(
+                item.risk_score ||
+                0
+            );
+
+
+        $("drawerRisk")
+            .innerHTML = `
+                <span class="risk-score ${riskClass(score)}">
+                    ${escapeHTML(score)}
+                </span>
+            `;
+
+
+        $("drawerProduct")
+            .textContent =
+            item.affected_product ||
+            "—";
+
+
+        $("drawerVersion")
+            .textContent =
+            item.affected_version ||
+            "—";
+
+
+        $("drawerStatus")
+            .innerHTML =
+            statusHTML(
+                item.status
+            );
+
+
+        $("drawerDetected")
+            .textContent =
+            formatDate(
+                item.detected_at ||
+                item.created_at
+            );
+
+
+        $("drawerRemediated")
+            .textContent =
+            formatDate(
+                item.remediated_at
+            );
+
+
+        $("drawerDescription")
+            .textContent =
+            item.description ||
+            "No description available.";
+
+
+        $("drawerRemediation")
+            .textContent =
+            item.remediation ||
+            item.remediation_guidance ||
+            "No remediation guidance available.";
+
+
+        $("remediationEvidence")
+            .value = "";
+
+
+        $("vulnerabilityDrawer")
+            .classList.add(
+                "open"
+            );
+
+
+        $("drawerBackdrop")
+            .classList.add(
+                "open"
+            );
+
+    }
+
+
+    async function remediate() {
+
+        if (!selectedVulnerability) {
+            return;
+        }
+
+
+        const id =
+            selectedVulnerability.id;
+
+
+        const evidence =
+            $("remediationEvidence")
+                .value
+                .trim();
+
+
+        try {
+
+            await PhoenixAPI.request(
+                "/api/vulnerabilities/remediate",
+                {
+                    method:"POST",
+                    body:JSON.stringify({
+                        vulnerability_id:id,
+                        evidence:evidence || null
+                    })
+                }
+            );
+
+
+            showToast(
+                "Remediation recorded."
+            );
+
+
+            await loadVulnerabilities();
+
+
+            await openVulnerability(
+                id
+            );
+
+
+        } catch (error) {
+
+            showToast(
+                `Remediation failed: ${error.message}`
+            );
+
+        }
+
+    }
+
+
+    async function verify() {
+
+        if (!selectedVulnerability) {
+            return;
+        }
+
+
+        const id =
+            selectedVulnerability.id;
+
+
+        try {
+
+            await PhoenixAPI.request(
+                "/api/vulnerabilities/verify",
+                {
+                    method:"POST",
+                    body:JSON.stringify({
+                        vulnerability_id:id
+                    })
+                }
+            );
+
+
+            showToast(
+                "Remediation verification submitted."
+            );
+
+
+            await loadVulnerabilities();
+
+
+            await openVulnerability(
+                id
+            );
+
+
+        } catch (error) {
+
+            showToast(
+                `Verification failed: ${error.message}`
+            );
+
+        }
+
+    }
+
+
+    function closeDrawer() {
+
+        $("vulnerabilityDrawer")
+            .classList.remove(
+                "open"
+            );
+
+
+        $("drawerBackdrop")
+            .classList.remove(
+                "open"
+            );
+
+
+        selectedVulnerability =
+            null;
+
+    }
+
+
+    [
+        "searchInput"
+    ]
+    .forEach(
+        id =>
+            $(id)
+                .addEventListener(
+                    "input",
+                    renderTable
+                )
+    );
+
+
+    [
+        "severityFilter",
+        "statusFilter",
+        "sortFilter"
+    ]
+    .forEach(
+        id =>
+            $(id)
+                .addEventListener(
+                    "change",
+                    renderTable
+                )
+    );
+
+
+    $("clearFilters")
+        .addEventListener(
+            "click",
+            () => {
+
+                $("searchInput").value = "";
+                $("severityFilter").value = "";
+                $("statusFilter").value = "";
+                $("sortFilter").value = "risk";
+
+                renderTable();
+
+            }
+        );
+
+
+    $("refreshButton")
+        .addEventListener(
+            "click",
+            async () => {
+
+                await loadVulnerabilities();
+
+                showToast(
+                    "Vulnerability inventory refreshed."
+                );
+
+            }
+        );
+
+
+    $("refreshHeader")
+        .addEventListener(
+            "click",
+            () =>
+                $("refreshButton")
+                    .click()
+        );
+
+
+    $("remediationGuide")
+        .addEventListener(
+            "click",
+            () => {
+
+                showToast(
+                    "Workflow: identify → prioritize → remediate → verify."
+                );
+
+            }
+        );
+
+
+    $("markRemediated")
+        .addEventListener(
+            "click",
+            remediate
+        );
+
+
+    $("verifyRemediation")
+        .addEventListener(
+            "click",
+            verify
+        );
+
+
+    $("closeDrawer")
+        .addEventListener(
+            "click",
+            closeDrawer
+        );
+
+
+    $("drawerBackdrop")
+        .addEventListener(
+            "click",
+            closeDrawer
+        );
+
+
+
+    $("globalSearch")
+        .addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key === "Enter"
+                ) {
+
+                    const query =
+                        event.target.value.trim();
+
+
+                    if (query) {
+
+                        window.location.href =
+                            `/frontend/pages/events.html?q=${encodeURIComponent(
+                                query
+                            )}`;
+
+                    }
+
+                }
+
+            }
+        );
+
+
+    loadVulnerabilities();
+
+
+    setInterval(
+        loadVulnerabilities,
+        30000
+    );
+
+})();
+</script>
+
+</body>
+</html>

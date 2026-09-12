@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PHOENIX | Data Protection</title>
+<link rel="stylesheet" href="/frontend/css/phoenix.css">
+    <link rel="stylesheet" href="/frontend/css/phoenix-theme.css?v=2">
+    
+
+<style>
+.module-page{max-width:1740px;margin:auto;padding:25px 26px 40px}
+.module-header{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:18px}
+.eyebrow{color:#4d91bd;font-size:8px;font-weight:800;letter-spacing:.15em;margin-bottom:5px}
+.module-header h1{margin:0;font-size:25px}
+.module-header p{margin:6px 0 0;color:var(--muted);font-size:11px}
+.module-actions{display:flex;gap:7px}
+.module-button{height:35px;padding:0 12px;border:1px solid var(--border);border-radius:6px;background:#0b1c2b;color:#a9bbc6;cursor:pointer;font-size:9px;font-weight:700}
+.module-button:hover{background:#102b3e;border-color:#315d78;color:white}
+.module-button.primary{background:#0d3550;border-color:#246d9d;color:#8dceff}
+
+.summary{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin-bottom:12px}
+.summary-item{min-height:75px;padding:12px 14px;border:1px solid var(--border);border-radius:7px;background:#0b1d2b}
+.summary-item span{display:block;color:#688294;font-size:8px;text-transform:uppercase;letter-spacing:.07em}
+.summary-item strong{display:block;margin-top:8px;font-size:21px}
+.blue strong{color:#64baff}
+.good strong{color:#5bd7aa}
+.warn strong{color:#e9c45d}
+.high strong{color:#ff9f58}
+.critical strong{color:#ff6175}
+
+.dlp-layout{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:12px}
+.panel{border:1px solid var(--border);border-radius:8px;background:#0b1d2b;overflow:hidden}
+
+.toolbar{display:grid;grid-template-columns:minmax(230px,1fr) 145px 145px auto;gap:7px;padding:12px;border-bottom:1px solid var(--border);background:#091a28}
+.toolbar input,.toolbar select{height:35px;border:1px solid var(--border);border-radius:6px;background:#0b2030;color:#c7d6de;outline:none;padding:0 10px;font-size:9px}
+.toolbar input:focus,.toolbar select:focus{border-color:#2d79a6}
+
+.table-meta{display:flex;gap:18px;padding:9px 13px;color:#617b8d;border-bottom:1px solid var(--border-soft);font-size:8px}
+.table-meta strong{color:#cbd8df}
+
+.dlp-row{cursor:pointer}
+.dlp-row:hover{background:#102b3d}
+.dlp-row.selected{background:#102f43;box-shadow:inset 2px 0 #2d9fff}
+
+.resource-name{color:#d4e1e7;font-size:9px;font-weight:750}
+.resource-id{margin-top:4px;color:#4aaeff;font-family:ui-monospace,monospace;font-size:7px}
+.secondary{color:#718997;font-size:8px;margin-top:3px}
+
+.classification{display:inline-flex;padding:4px 6px;border-radius:4px;border:1px solid #294b61;background:#10293a;color:#9db7c6;font-size:7px;text-transform:uppercase}
+.classification.restricted,.classification.confidential{border-color:#65432f;background:#2a1e18;color:#ffae70}
+.classification.secret,.classification.top-secret{border-color:#67333d;background:#27171b;color:#ff697b}
+.classification.internal{border-color:#5b502d;background:#292417;color:#e6cb6b}
+
+.result{display:inline-flex;padding:4px 6px;border-radius:4px;font-size:7px;text-transform:uppercase}
+.result.allow,.result.allowed{border:1px solid #275845;background:#0d2821;color:#64d7aa}
+.result.block,.result.blocked,.result.quarantine{border:1px solid #67333d;background:#27171b;color:#ff697b}
+.result.review,.result.alert,.result.monitor{border:1px solid #5b502d;background:#292417;color:#e6cb6b}
+
+.severity{display:inline-flex;padding:4px 6px;border-radius:4px;font-size:7px;text-transform:uppercase}
+.severity.critical{border:1px solid #67333d;background:#27171b;color:#ff697b}
+.severity.high{border:1px solid #65432f;background:#2a1e18;color:#ffae70}
+.severity.medium{border:1px solid #5b502d;background:#292417;color:#e6cb6b}
+.severity.low{border:1px solid #294b61;background:#10293a;color:#91aec0}
+
+.side-section+.side-section{border-top:1px solid var(--border)}
+.section-header{padding:14px;border-bottom:1px solid var(--border)}
+.section-header h2{margin:0;font-size:12px}
+.section-header p{margin:4px 0 0;color:#657f90;font-size:8px}
+
+.health{padding:12px 13px}
+.health-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(24,56,77,.5);font-size:8px;color:#7e96a4}
+.health-row:last-child{border-bottom:0}
+.health-row strong{color:#d0dce2}
+
+.event-list{max-height:330px;overflow-y:auto}
+.event-item{padding:10px 13px;border-bottom:1px solid rgba(24,56,77,.48);cursor:pointer}
+.event-item:hover{background:#10293a}
+.event-top{display:flex;justify-content:space-between;gap:8px}
+.event-title{color:#d0dce2;font-size:8px;font-weight:750}
+.event-time{color:#5d7788;font-family:ui-monospace,monospace;font-size:7px}
+.event-detail{margin-top:5px;color:#718997;font-size:8px;line-height:1.45}
+
+.empty{min-height:130px;display:grid;place-items:center;color:#60798a;font-size:9px;padding:15px;text-align:center}
+
+.drawer-backdrop{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.48);opacity:0;pointer-events:none;transition:opacity .2s}
+.drawer-backdrop.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;z-index:90;width:min(720px,95vw);height:100vh;overflow-y:auto;background:#071724;border-left:1px solid #244b63;box-shadow:-20px 0 60px rgba(0,0,0,.45);transform:translateX(100%);transition:transform .22s ease}
+.drawer.open{transform:translateX(0)}
+.drawer-header{position:sticky;top:0;z-index:2;padding:16px;background:#091b2a;border-bottom:1px solid var(--border)}
+.drawer-header-top{display:flex;justify-content:space-between;gap:15px}
+.drawer-title{margin:3px 0;font-size:17px}
+.drawer-uid{color:#4aaeff;font-family:ui-monospace,monospace;font-size:8px}
+.drawer-close{width:32px;height:32px;border:1px solid var(--border);border-radius:6px;background:#0c2130;color:#9eb2bd;cursor:pointer}
+.drawer-body{padding:13px}
+.drawer-section{margin-bottom:10px;border:1px solid var(--border);border-radius:7px;background:#0a1c2a;overflow:hidden}
+.drawer-section-title{padding:10px 12px;border-bottom:1px solid var(--border);color:#d3dfe5;font-size:10px;font-weight:750}
+.context-grid{display:grid;grid-template-columns:160px 1fr}
+.context-grid div{padding:8px 10px;border-bottom:1px solid rgba(24,56,77,.48);font-size:9px}
+.context-grid div:nth-child(odd){color:#637d8d}
+.context-grid div:nth-child(even){color:#c8d5dc;word-break:break-word}
+.event-box{margin:12px;padding:10px;border:1px solid #294b61;border-radius:5px;background:#081923;color:#8eaab9;font-family:ui-monospace,monospace;font-size:8px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.event-box.risk{border-color:#67333d;background:#25171b;color:#ff8792}
+.action-box{padding:12px}
+.action-note{padding:9px 10px;border:1px solid #294b61;border-radius:5px;background:#0c2333;color:#91aab7;font-size:8px;line-height:1.6}
+
+.toast{position:fixed;right:22px;bottom:22px;z-index:200;max-width:380px;padding:10px 13px;border:1px solid #285b77;border-radius:6px;background:#0a2232;color:#b9d2df;box-shadow:0 10px 30px rgba(0,0,0,.35);font-size:9px;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s}
+.toast.show{opacity:1;transform:translateY(0)}
+
+@media(max-width:1250px){
+.summary{grid-template-columns:repeat(3,1fr)}
+.dlp-layout{grid-template-columns:1fr}
+}
+@media(max-width:900px){
+.toolbar{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+.module-page{padding:18px 11px 30px}
+.module-header{flex-direction:column;align-items:flex-start}
+.summary{grid-template-columns:repeat(2,1fr)}
+.toolbar{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header class="topbar">
+
+<a class="brand" href="/frontend/">
+<div class="brand-symbol"><span>P</span></div>
+<div class="brand-text">
+<strong>PHOENIX</strong>
+<span>Autonomous Enterprise Cyber Defense Platform</span>
+</div>
+</a>
+
+<div class="global-search">
+<span class="search-icon">⌕</span>
+<input id="globalSearch" type="search" placeholder="Search events, incidents, assets, IOCs...">
+<kbd>/</kbd>
+</div>
+
+<div class="header-actions">
+
+<button class="header-button" id="refreshHeader">↻</button>
+
+<button class="header-button">
+♢
+<span class="notification-dot"></span>
+</button>
+
+<div class="header-divider"></div>
+
+<div class="analyst-menu">
+<div class="analyst-avatar">A</div>
+<div class="analyst-info">
+<strong>Analyst</strong>
+<span>SOC Analyst</span>
+</div>
+<span class="chevron">⌄</span>
+</div>
+
+</div>
+
+</header>
+
+
+<nav class="primary-nav">
+
+<a class="nav-item" href="/frontend/">Security Operations</a>
+<a class="nav-item" href="/frontend/pages/incidents.html">Incidents</a>
+<a class="nav-item" href="/frontend/pages/detections.html">Detections</a>
+<a class="nav-item" href="/frontend/pages/intelligence.html">Threat Intelligence</a>
+<a class="nav-item" href="/frontend/pages/assets.html">Assets</a>
+<a class="nav-item" href="/frontend/pages/response.html">Response</a>
+
+<button class="nav-more" id="moreButton">More ⌄</button>
+
+<div class="more-menu" id="moreMenu">
+
+<div class="more-column">
+<span class="menu-heading">Protect</span>
+<a href="/frontend/pages/vulnerabilities.html">Vulnerabilities</a>
+<a href="/frontend/pages/identity.html">Identity</a>
+<a href="/frontend/pages/zero-trust.html">Zero Trust</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Investigate</span>
+<a href="/frontend/pages/endpoints.html">Endpoints</a>
+<a href="/frontend/pages/hunting.html">Threat Hunting</a>
+<a href="/frontend/pages/forensics.html">Forensics</a>
+<a href="/frontend/pages/cases.html">Cases</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Infrastructure</span>
+<a href="/frontend/pages/cloud.html">Cloud</a>
+<a href="/frontend/pages/kubernetes.html">Kubernetes</a>
+<a class="active" href="/frontend/pages/dlp.html">DLP</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Governance</span>
+<a href="/frontend/pages/recovery.html">Recovery</a>
+<a href="/frontend/pages/risk.html">Risk</a>
+<a href="/frontend/pages/compliance.html">Compliance</a>
+<a href="/frontend/pages/reports.html">Reports</a>
+</div>
+
+</div>
+
+</nav>
+
+
+<main class="module-page">
+
+<section class="module-header">
+
+<div>
+
+<div class="eyebrow">DATA PROTECTION / DLP</div>
+
+<h1>Data Protection Operations</h1>
+
+<p>
+Monitor sensitive resources, data movement and policy decisions across protected enterprise data.
+</p>
+
+</div>
+
+<div class="module-actions">
+
+<button class="module-button" id="refreshButton">
+↻ Refresh
+</button>
+
+<button class="module-button primary" id="policyButton">
+Policy Review
+</button>
+
+</div>
+
+</section>
+
+
+<section class="summary">
+
+<div class="summary-item blue">
+<span>Sensitive Resources</span>
+<strong id="resourceCount">0</strong>
+</div>
+
+<div class="summary-item blue">
+<span>DLP Events</span>
+<strong id="eventCount">0</strong>
+</div>
+
+<div class="summary-item critical">
+<span>Critical Events</span>
+<strong id="criticalCount">0</strong>
+</div>
+
+<div class="summary-item high">
+<span>High Risk</span>
+<strong id="highCount">0</strong>
+</div>
+
+<div class="summary-item warn">
+<span>Review Required</span>
+<strong id="reviewCount">0</strong>
+</div>
+
+<div class="summary-item good">
+<span>Blocked / Quarantined</span>
+<strong id="blockedCount">0</strong>
+</div>
+
+</section>
+
+
+<section class="dlp-layout">
+
+
+<article class="panel">
+
+<div class="toolbar">
+
+<input
+id="searchInput"
+type="search"
+placeholder="Search resource, user, destination, event..."
+>
+
+<select id="classificationFilter">
+<option value="">All Classifications</option>
+</select>
+
+<select id="resultFilter">
+<option value="">All Policy Results</option>
+</select>
+
+<button class="module-button" id="clearFilters">
+Clear
+</button>
+
+</div>
+
+
+<div class="table-meta">
+
+<span>
+Events:
+<strong id="visibleCount">0</strong>
+</span>
+
+<span>
+Classification:
+<strong>DATA-AWARE</strong>
+</span>
+
+<span>
+Policy:
+<strong id="policyMeta">0</strong>
+</span>
+
+</div>
+
+
+<div class="table-container">
+
+<table>
+
+<thead>
+
+<tr>
+<th>Protected Resource</th>
+<th>Classification</th>
+<th>User</th>
+<th>Destination</th>
+<th>Transfer</th>
+<th>Policy</th>
+<th>Severity</th>
+</tr>
+
+</thead>
+
+<tbody id="dlpRows">
+
+<tr>
+<td colspan="7">
+<div class="table-loading">
+Loading DLP telemetry...
+</div>
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</article>
+
+
+<aside class="panel">
+
+
+<section class="side-section">
+
+<header class="section-header">
+
+<h2>Data Protection Posture</h2>
+
+<p>
+Current sensitive-data exposure
+</p>
+
+</header>
+
+
+<div class="health">
+
+<div class="health-row">
+<span>Protected Resources</span>
+<strong id="healthResources">0</strong>
+</div>
+
+<div class="health-row">
+<span>Total DLP Events</span>
+<strong id="healthEvents">0</strong>
+</div>
+
+<div class="health-row">
+<span>Critical</span>
+<strong id="healthCritical">0</strong>
+</div>
+
+<div class="health-row">
+<span>Review Required</span>
+<strong id="healthReview">0</strong>
+</div>
+
+<div class="health-row">
+<span>Blocked / Quarantined</span>
+<strong id="healthBlocked">0</strong>
+</div>
+
+</div>
+
+</section>
+
+
+<section class="side-section">
+
+<header class="section-header">
+
+<h2>Recent Data Movement</h2>
+
+<p>
+Latest sensitive-resource activity
+</p>
+
+</header>
+
+
+<div
+class="event-list"
+id="eventList"
+>
+
+<div class="empty">
+No DLP events available.
+</div>
+
+</div>
+
+</section>
+
+
+</aside>
+
+</section>
+
+</main>
+
+</div>
+
+
+<div
+class="drawer-backdrop"
+id="drawerBackdrop"
+></div>
+
+
+<aside
+class="drawer"
+id="dlpDrawer"
+>
+
+<header class="drawer-header">
+
+<div class="drawer-header-top">
+
+<div>
+
+<div class="eyebrow">
+DLP INVESTIGATION
+</div>
+
+<h2
+class="drawer-title"
+id="drawerTitle"
+>
+DLP Event
+</h2>
+
+<div
+class="drawer-uid"
+id="drawerUid"
+>
+—
+</div>
+
+</div>
+
+<button
+class="drawer-close"
+id="closeDrawer"
+>
+×
+</button>
+
+</div>
+
+</header>
+
+
+<div class="drawer-body">
+
+
+<section class="drawer-section">
+
+<div class="drawer-section-title">
+Data Movement Context
+</div>
+
+<div class="context-grid">
+
+<div>Resource</div>
+<div id="drawerResource">—</div>
+
+<div>Classification</div>
+<div id="drawerClassification">—</div>
+
+<div>User</div>
+<div id="drawerUser">—</div>
+
+<div>Source IP</div>
+<div id="drawerSource">—</div>
+
+<div>Destination</div>
+<div id="drawerDestination">—</div>
+
+<div>Action</div>
+<div id="drawerAction">—</div>
+
+<div>Bytes Transferred</div>
+<div id="drawerBytes">—</div>
+
+<div>Policy Result</div>
+<div id="drawerResult">—</div>
+
+<div>Severity</div>
+<div id="drawerSeverity">—</div>
+
+<div>Event Time</div>
+<div id="drawerTime">—</div>
+
+</div>
+
+</section>
+
+
+<section class="drawer-section">
+
+<div class="drawer-section-title">
+DLP Assessment
+</div>
+
+<div
+class="event-box"
+id="drawerAssessment"
+>
+Run an assessment to calculate data-movement risk.
+</div>
+
+</section>
+
+
+<section class="drawer-section">
+
+<div class="drawer-section-title">
+Analyst Guidance
+</div>
+
+<div class="action-box">
+
+<div class="action-note">
+Validate the resource classification, business purpose, user authorization and destination before taking action. DLP decisions should remain auditable and aligned with the approved data-protection policy.
+</div>
+
+</div>
+
+</section>
+
+</div>
+
+</aside>
+
+
+<div
+class="toast"
+id="toast"
+></div>
+
+
+<script src="/frontend/js/api.js"></script>
+<script src="/frontend/js/auth-guard.js"></script>
+<script src="/frontend/js/navigation.js"></script>
+
+<script>
+(() => {
+
+"use strict";
+
+const $ = id => document.getElementById(id);
+
+let resources = [];
+let events = [];
+
+
+function escapeHTML(value) {
+
+return String(value ?? "")
+.replace(
+/[&<>"']/g,
+char =>
+({
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#039;"
+}[char])
+);
+
+}
+
+
+function normalize(value) {
+
+return String(value ?? "")
+.trim()
+.toLowerCase();
+
+}
+
+
+function unwrap(data, keys) {
+
+if (Array.isArray(data)) return data;
+
+for (const key of keys) {
+
+if (Array.isArray(data?.[key])) {
+return data[key];
+}
+
+}
+
+return [];
+
+}
+
+
+function formatDate(value) {
+
+if (!value) return "—";
+
+const date = new Date(value);
+
+if (Number.isNaN(date.getTime())) {
+return escapeHTML(value);
+}
+
+return date.toLocaleString(
+[],
+{
+month:"short",
+day:"2-digit",
+hour:"2-digit",
+minute:"2-digit"
+}
+);
+
+}
+
+
+function formatBytes(value) {
+
+const bytes =
+Number(value);
+
+if (!Number.isFinite(bytes) || bytes <= 0) {
+return "0 B";
+}
+
+const units =
+[
+"B",
+"KB",
+"MB",
+"GB",
+"TB"
+];
+
+let index = 0;
+let size = bytes;
+
+while (
+size >= 1024 &&
+index < units.length - 1
+) {
+size /= 1024;
+index++;
+}
+
+return `${size.toFixed(
+size >= 10 || index === 0
+? 0
+: 1
+)} ${units[index]}`;
+
+}
+
+
+function showToast(message) {
+
+const toast = $("toast");
+
+toast.textContent = message;
+
+toast.classList.add("show");
+
+setTimeout(
+() => toast.classList.remove("show"),
+2600
+);
+
+}
+
+
+function classificationHTML(value) {
+
+const classification =
+normalize(value || "unknown");
+
+return `
+<span class="classification ${escapeHTML(classification)}">
+${escapeHTML(value || "unknown")}
+</span>
+`;
+
+}
+
+
+function resultHTML(value) {
+
+const result =
+normalize(value || "unknown");
+
+return `
+<span class="result ${escapeHTML(result)}">
+${escapeHTML(value || "unknown")}
+</span>
+`;
+
+}
+
+
+function severityHTML(value) {
+
+const severity =
+normalize(value || "unknown");
+
+return `
+<span class="severity ${escapeHTML(severity)}">
+${escapeHTML(value || "unknown")}
+</span>
+`;
+
+}
+
+
+async function loadDLP() {
+
+try {
+
+const [
+resourceData,
+eventData
+] = await Promise.all([
+
+PhoenixAPI.request(
+"/api/dlp/resources"
+),
+
+PhoenixAPI.request(
+"/api/dlp/events"
+)
+
+]);
+
+resources =
+unwrap(
+resourceData,
+[
+"resources",
+"sensitive_resources",
+"items"
+]
+);
+
+events =
+unwrap(
+eventData,
+[
+"events",
+"dlp_events",
+"items"
+]
+);
+
+} catch(error) {
+
+resources = [];
+events = [];
+
+showToast(
+`DLP telemetry unavailable: ${error.message}`
+);
+
+}
+
+populateFilters();
+updateSummary();
+renderEvents();
+renderRecentEvents();
+updateHealth();
+
+}
+
+
+function resourceForEvent(event) {
+
+const resourceId =
+event.resource_id;
+
+return resources.find(
+resource =>
+Number(resource.id) ===
+Number(resourceId)
+);
+
+}
+
+
+function updateSummary() {
+
+const critical =
+events.filter(
+event =>
+normalize(event.severity) === "critical"
+).length;
+
+const high =
+events.filter(
+event =>
+[
+"critical",
+"high"
+].includes(
+normalize(event.severity)
+)
+).length;
+
+const review =
+events.filter(
+event =>
+[
+"review",
+"alert",
+"monitor",
+"review_required"
+].includes(
+normalize(event.policy_result)
+)
+).length;
+
+const blocked =
+events.filter(
+event =>
+[
+"blocked",
+"block",
+"quarantine",
+"quarantined"
+].includes(
+normalize(event.policy_result)
+)
+).length;
+
+
+$("resourceCount")
+.textContent =
+resources.length;
+
+$("eventCount")
+.textContent =
+events.length;
+
+$("criticalCount")
+.textContent =
+critical;
+
+$("highCount")
+.textContent =
+high;
+
+$("reviewCount")
+.textContent =
+review;
+
+$("blockedCount")
+.textContent =
+blocked;
+
+$("policyMeta")
+.textContent =
+events.length;
+
+}
+
+
+function populateFilters() {
+
+const classification =
+$("classificationFilter");
+
+const result =
+$("resultFilter");
+
+const currentClassification =
+classification.value;
+
+const currentResult =
+result.value;
+
+
+const classifications =
+new Set(
+[
+...resources.map(
+item =>
+item.classification
+),
+...events.map(
+item =>
+item.data_classification
+)
+]
+.filter(Boolean)
+);
+
+
+const results =
+new Set(
+events
+.map(
+item =>
+item.policy_result
+)
+.filter(Boolean)
+);
+
+
+classification.innerHTML =
+`<option value="">All Classifications</option>`;
+
+[...classifications]
+.sort()
+.forEach(
+value => {
+
+const option =
+document.createElement("option");
+
+option.value =
+value;
+
+option.textContent =
+value;
+
+classification.appendChild(option);
+
+}
+);
+
+
+result.innerHTML =
+`<option value="">All Policy Results</option>`;
+
+[...results]
+.sort()
+.forEach(
+value => {
+
+const option =
+document.createElement("option");
+
+option.value =
+value;
+
+option.textContent =
+value;
+
+result.appendChild(option);
+
+}
+);
+
+
+classification.value =
+currentClassification;
+
+result.value =
+currentResult;
+
+}
+
+
+function filteredEvents() {
+
+const query =
+normalize(
+$("searchInput").value
+);
+
+const classification =
+normalize(
+$("classificationFilter").value
+);
+
+const result =
+normalize(
+$("resultFilter").value
+);
+
+
+return events.filter(
+event => {
+
+const resource =
+resourceForEvent(event);
+
+const searchable =
+[
+event.event_uid,
+event.event_type,
+event.action,
+event.username,
+event.source_ip,
+event.destination,
+event.data_classification,
+event.policy_result,
+event.description,
+resource?.name,
+resource?.resource_uid,
+resource?.location
+]
+.join(" ")
+.toLowerCase();
+
+
+if (
+query &&
+!searchable.includes(query)
+) {
+return false;
+}
+
+
+const eventClassification =
+normalize(
+event.data_classification ||
+resource?.classification
+);
+
+if (
+classification &&
+eventClassification !== classification
+) {
+return false;
+}
+
+
+if (
+result &&
+normalize(
+event.policy_result
+) !== result
+) {
+return false;
+}
+
+
+return true;
+
+}
+);
+
+}
+
+
+function renderEvents() {
+
+const body =
+$("dlpRows");
+
+const items =
+filteredEvents();
+
+$("visibleCount")
+.textContent =
+items.length;
+
+
+if (!items.length) {
+
+body.innerHTML = `
+<tr>
+<td colspan="7">
+<div class="empty">
+${
+events.length
+? "No DLP events match the current filters."
+: "No DLP telemetry is currently available."
+}
+</div>
+</td>
+</tr>
+`;
+
+return;
+
+}
+
+
+body.innerHTML =
+items
+.map(
+event => {
+
+const resource =
+resourceForEvent(event);
+
+const classification =
+event.data_classification ||
+resource?.classification ||
+"unknown";
+
+return `
+
+<tr
+class="dlp-row"
+data-id="${escapeHTML(event.id)}"
+>
+
+<td>
+
+<div class="resource-name">
+${escapeHTML(
+resource?.name ||
+event.event_uid ||
+"Protected resource"
+)}
+</div>
+
+<div class="resource-id">
+${escapeHTML(
+resource?.resource_uid ||
+event.event_uid ||
+`DLP-${event.id}`
+)}
+</div>
+
+</td>
+
+<td>
+${classificationHTML(
+classification
+)}
+</td>
+
+<td>
+${escapeHTML(
+event.username ||
+"unknown"
+)}
+</td>
+
+<td>
+
+<div class="secondary">
+${escapeHTML(
+event.destination ||
+"—"
+)}
+</div>
+
+</td>
+
+<td>
+
+<div class="secondary">
+${formatBytes(
+event.bytes_transferred
+)}
+</div>
+
+</td>
+
+<td>
+${resultHTML(
+event.policy_result ||
+"unknown"
+)}
+</td>
+
+<td>
+${severityHTML(
+event.severity ||
+"unknown"
+)}
+</td>
+
+</tr>
+
+`;
+
+}
+)
+.join("");
+
+
+body
+.querySelectorAll(".dlp-row")
+.forEach(
+row =>
+row.addEventListener(
+"click",
+() =>
+openEvent(
+Number(row.dataset.id)
+)
+)
+);
+
+}
+
+
+function renderRecentEvents() {
+
+const container =
+$("eventList");
+
+const recent =
+[...events]
+.sort(
+(a,b) =>
+new Date(
+b.event_time ||
+b.created_at ||
+0
+) -
+new Date(
+a.event_time ||
+a.created_at ||
+0
+)
+)
+.slice(0,10);
+
+
+if (!recent.length) {
+
+container.innerHTML = `
+<div class="empty">
+No DLP events available.
+</div>
+`;
+
+return;
+
+}
+
+
+container.innerHTML =
+recent
+.map(
+event => `
+
+<div
+class="event-item"
+data-id="${escapeHTML(event.id)}"
+>
+
+<div class="event-top">
+
+<span class="event-title">
+${escapeHTML(
+event.action ||
+event.event_type ||
+"Data movement"
+)}
+</span>
+
+<span class="event-time">
+${formatDate(
+event.event_time
+)}
+</span>
+
+</div>
+
+<div class="event-detail">
+
+${escapeHTML(
+event.username ||
+"unknown user"
+)}
+ ·
+${escapeHTML(
+event.destination ||
+"destination unknown"
+)}
+
+<br>
+
+${escapeHTML(
+event.data_classification ||
+"unclassified"
+)}
+ ·
+${formatBytes(
+event.bytes_transferred
+)}
+
+</div>
+
+</div>
+
+`
+)
+.join("");
+
+
+container
+.querySelectorAll(".event-item")
+.forEach(
+item =>
+item.addEventListener(
+"click",
+() =>
+openEvent(
+Number(item.dataset.id)
+)
+)
+);
+
+}
+
+
+function updateHealth() {
+
+const critical =
+events.filter(
+event =>
+normalize(event.severity) === "critical"
+).length;
+
+const review =
+events.filter(
+event =>
+[
+"review",
+"alert",
+"monitor",
+"review_required"
+].includes(
+normalize(event.policy_result)
+)
+).length;
+
+const blocked =
+events.filter(
+event =>
+[
+"blocked",
+"block",
+"quarantine",
+"quarantined"
+].includes(
+normalize(event.policy_result)
+)
+).length;
+
+
+$("healthResources")
+.textContent =
+resources.length;
+
+$("healthEvents")
+.textContent =
+events.length;
+
+$("healthCritical")
+.textContent =
+critical;
+
+$("healthReview")
+.textContent =
+review;
+
+$("healthBlocked")
+.textContent =
+blocked;
+
+}
+
+
+function openEvent(id) {
+
+const event =
+events.find(
+item =>
+Number(item.id) === id
+);
+
+if (!event) return;
+
+
+const resource =
+resourceForEvent(event);
+
+
+$("drawerTitle")
+.textContent =
+event.event_type ||
+event.action ||
+"DLP Event";
+
+
+$("drawerUid")
+.textContent =
+event.event_uid ||
+`DLP-${event.id}`;
+
+
+$("drawerResource")
+.textContent =
+resource?.name ||
+resource?.resource_uid ||
+event.resource_id ||
+"—";
+
+
+$("drawerClassification")
+innerHTML =
+classificationHTML(
+event.data_classification ||
+resource?.classification ||
+"unknown"
+);
+
+
+$("drawerUser")
+.textContent =
+event.username ||
+"—";
+
+
+$("drawerSource")
+.textContent =
+event.source_ip ||
+"—";
+
+
+$("drawerDestination")
+.textContent =
+event.destination ||
+"—";
+
+
+$("drawerAction")
+.textContent =
+event.action ||
+"—";
+
+
+$("drawerBytes")
+.textContent =
+formatBytes(
+event.bytes_transferred
+);
+
+
+$("drawerResult")
+innerHTML =
+resultHTML(
+event.policy_result ||
+"unknown"
+);
+
+
+$("drawerSeverity")
+innerHTML =
+severityHTML(
+event.severity ||
+"unknown"
+);
+
+
+$("drawerTime")
+.textContent =
+formatDate(
+event.event_time
+);
+
+
+$("drawerAssessment")
+className =
+"event-box";
+
+
+$("drawerAssessment")
+textContent =
+[
+`Event: ${event.event_uid || event.id}`,
+`Classification: ${event.data_classification || resource?.classification || "unknown"}`,
+`Action: ${event.action || "—"}`,
+`Destination: ${event.destination || "—"}`,
+`Bytes: ${formatBytes(event.bytes_transferred)}`,
+`Policy result: ${event.policy_result || "—"}`,
+`Severity: ${event.severity || "—"}`,
+`Description: ${event.description || "No assessment recorded."}`
+]
+.join("\n");
+
+
+if (
+[
+"critical",
+"high"
+].includes(
+normalize(event.severity)
+)
+) {
+
+$("drawerAssessment")
+.classList.add("risk");
+
+}
+
+
+$("dlpDrawer")
+.classList.add("open");
+
+$("drawerBackdrop")
+.classList.add("open");
+
+
+loadAssessment(
+event.id
+);
+
+}
+
+
+async function loadAssessment(id) {
+
+try {
+
+const data =
+await PhoenixAPI.request(
+`/api/dlp/events/${id}/assess`,
+{
+method:"POST"
+}
+);
+
+$("drawerAssessment")
+.textContent =
+JSON.stringify(
+data,
+null,
+2
+);
+
+} catch(error) {
+
+$("drawerAssessment")
+.textContent +=
+`\n\nAssessment endpoint unavailable: ${error.message}`;
+
+}
+
+}
+
+
+function closeDrawer() {
+
+$("dlpDrawer")
+.classList.remove("open");
+
+$("drawerBackdrop")
+.classList.remove("open");
+
+}
+
+
+$("searchInput")
+.addEventListener(
+"input",
+renderEvents
+);
+
+$("classificationFilter")
+.addEventListener(
+"change",
+renderEvents
+);
+
+$("resultFilter")
+.addEventListener(
+"change",
+renderEvents
+);
+
+
+$("clearFilters")
+.addEventListener(
+"click",
+() => {
+
+$("searchInput").value = "";
+$("classificationFilter").value = "";
+$("resultFilter").value = "";
+
+renderEvents();
+
+}
+);
+
+
+$("refreshButton")
+.addEventListener(
+"click",
+async () => {
+
+await loadDLP();
+
+showToast(
+"Data protection telemetry refreshed."
+);
+
+}
+);
+
+
+$("refreshHeader")
+.addEventListener(
+"click",
+() =>
+$("refreshButton").click()
+);
+
+
+$("policyButton")
+.addEventListener(
+"click",
+() =>
+showToast(
+"Review classification, destination and policy outcome before escalation."
+)
+);
+
+
+$("closeDrawer")
+.addEventListener(
+"click",
+closeDrawer
+);
+
+
+$("drawerBackdrop")
+.addEventListener(
+"click",
+closeDrawer
+);
+
+
+
+$("globalSearch")
+.addEventListener(
+"keydown",
+event => {
+
+if (
+event.key === "Enter"
+) {
+
+const query =
+event.target.value.trim();
+
+if (query) {
+
+window.location.href =
+`/frontend/pages/events.html?q=${encodeURIComponent(query)}`;
+
+}
+
+}
+
+}
+);
+
+
+loadDLP();
+
+
+setInterval(
+loadDLP,
+30000
+);
+
+})();
+</script>
+
+</body>
+</html>

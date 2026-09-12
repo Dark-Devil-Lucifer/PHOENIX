@@ -1,0 +1,239 @@
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Security Operations</h1>
+        <div class="page-description">
+            Enterprise security posture, active incidents and security activity.
+        </div>
+    </div>
+
+    <div class="header-actions">
+        <button class="button" id="operations-refresh">
+            Refresh
+        </button>
+        <button class="button button-primary" id="open-incidents">
+            Open Incidents
+        </button>
+    </div>
+</div>
+
+<section class="metric-grid">
+
+    <article class="metric-card">
+        <div class="metric-label">Open Incidents</div>
+        <div class="metric-value" id="metric-incidents">—</div>
+        <div class="metric-detail">Active investigations</div>
+    </article>
+
+    <article class="metric-card">
+        <div class="metric-label">Critical Alerts</div>
+        <div class="metric-value" id="metric-critical-alerts">—</div>
+        <div class="metric-detail">Requires analyst attention</div>
+    </article>
+
+    <article class="metric-card">
+        <div class="metric-label">Security Events</div>
+        <div class="metric-value" id="metric-events">—</div>
+        <div class="metric-detail">Centralized telemetry</div>
+    </article>
+
+    <article class="metric-card">
+        <div class="metric-label">Assets</div>
+        <div class="metric-value" id="metric-assets">—</div>
+        <div class="metric-detail">Tracked enterprise assets</div>
+    </article>
+
+    <article class="metric-card">
+        <div class="metric-label">Detections</div>
+        <div class="metric-value" id="metric-detections">—</div>
+        <div class="metric-detail">Detection activity</div>
+    </article>
+
+</section>
+
+<section class="dashboard-grid">
+
+    <article class="panel">
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">Open Incidents</div>
+                <div class="panel-subtitle">
+                    Highest-priority active investigations
+                </div>
+            </div>
+
+            <button
+                class="panel-action"
+                id="view-all-incidents"
+            >
+                View all
+            </button>
+        </div>
+
+        <div class="panel-body">
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Incident</th>
+                            <th>Severity</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Detected</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="incident-table">
+                        <tr>
+                            <td colspan="5">
+                                <div class="loading-state">
+                                    Loading incidents...
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </article>
+
+    <article class="panel">
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">Incident Priority</div>
+                <div class="panel-subtitle">
+                    Current severity distribution
+                </div>
+            </div>
+        </div>
+
+        <div class="priority-list">
+            <div class="priority-row">
+                <div>
+                    <div class="priority-label">Critical</div>
+                    <div class="priority-bar">
+                        <div
+                            class="priority-fill"
+                            id="critical-bar"
+                        ></div>
+                    </div>
+                </div>
+
+                <div
+                    class="priority-number"
+                    id="priority-critical"
+                >
+                    —
+                </div>
+            </div>
+
+            <div class="priority-row">
+                <div>
+                    <div class="priority-label">High</div>
+                    <div class="priority-bar">
+                        <div
+                            class="priority-fill"
+                            id="high-bar"
+                        ></div>
+                    </div>
+                </div>
+
+                <div
+                    class="priority-number"
+                    id="priority-high"
+                >
+                    —
+                </div>
+            </div>
+
+            <div class="priority-row">
+                <div>
+                    <div class="priority-label">Medium</div>
+                    <div class="priority-bar">
+                        <div
+                            class="priority-fill"
+                            id="medium-bar"
+                        ></div>
+                    </div>
+                </div>
+
+                <div
+                    class="priority-number"
+                    id="priority-medium"
+                >
+                    —
+                </div>
+            </div>
+
+            <div class="priority-row">
+                <div>
+                    <div class="priority-label">Low</div>
+                    <div class="priority-bar">
+                        <div
+                            class="priority-fill"
+                            id="low-bar"
+                        ></div>
+                    </div>
+                </div>
+
+                <div
+                    class="priority-number"
+                    id="priority-low"
+                >
+                    —
+                </div>
+            </div>
+        </div>
+    </article>
+
+</section>
+
+<section class="dashboard-grid">
+
+    <article class="panel">
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">Live Security Activity</div>
+                <div class="panel-subtitle">
+                    Latest events received by the SIEM
+                </div>
+            </div>
+
+            <button
+                class="panel-action"
+                id="view-events"
+            >
+                Open event stream
+            </button>
+        </div>
+
+        <div
+            class="activity-list"
+            id="activity-list"
+        >
+            <div class="loading-state">
+                Loading security activity...
+            </div>
+        </div>
+    </article>
+
+    <article class="panel">
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">Service Health</div>
+                <div class="panel-subtitle">
+                    PHOENIX security platform status
+                </div>
+            </div>
+        </div>
+
+        <div
+            class="activity-list"
+            id="health-list"
+        >
+            <div class="loading-state">
+                Checking services...
+            </div>
+        </div>
+    </article>
+
+</section>

@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/frontend/css/phoenix.css">
+    <link rel="stylesheet" href="/frontend/css/dashboard-polish.css?v=2">
+    <link rel="stylesheet" href="/frontend/css/phoenix-theme.css?v=3">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#07131f">
+    <title>PHOENIX | Security Operations</title>
+    </head>
+
+<body>
+
+<div class="app">
+
+    <!-- =========================================================
+         TOP HEADER
+    ========================================================== -->
+
+    <header class="topbar">
+
+        <div class="brand">
+
+            <div class="brand-symbol">
+                <span>P</span>
+            </div>
+
+            <div class="brand-text">
+                <strong>PHOENIX</strong>
+                <span>Autonomous Enterprise Cyber Defense Platform</span>
+            </div>
+
+        </div>
+
+
+        <div class="global-search">
+
+            <span class="search-icon">⌕</span>
+
+            <input
+                id="globalSearch"
+                type="search"
+                placeholder="Search events, incidents, assets, IOCs..."
+                autocomplete="off"
+            >
+
+            <kbd>/</kbd>
+
+        </div>
+
+
+        <div class="header-actions">
+
+            <button
+                class="header-button"
+                id="refreshDashboard"
+                title="Refresh dashboard"
+            >
+                ↻
+            </button>
+
+            <button
+                class="header-button"
+                id="notificationButton"
+                title="Notifications"
+            >
+                ♢
+                <span class="notification-dot"></span>
+            </button>
+
+            <button
+                class="header-button"
+                id="themeButton"
+                title="Appearance"
+            >
+                ◐
+            </button>
+
+            <div class="header-divider"></div>
+
+            <div class="analyst-menu">
+
+                <div class="analyst-avatar">
+                    A
+                </div>
+
+                <div class="analyst-info">
+                    <strong id="analystName">
+                        Analyst
+                    </strong>
+
+                    <span id="analystRole">
+                        SOC Analyst
+                    </span>
+                </div>
+
+                <span class="chevron">
+                    ⌄
+                </span>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- =========================================================
+         PRIMARY NAVIGATION
+    ========================================================== -->
+
+    <nav class="primary-nav">
+
+        <a
+            href="/frontend/"
+            class="nav-item active"
+        >
+            Security Operations
+        </a>
+
+        <a
+            href="/frontend/pages/incidents.html"
+            class="nav-item"
+        >
+            Incidents
+            <span
+                class="nav-counter"
+                id="incidentNavCounter"
+            >
+                0
+            </span>
+        </a>
+
+        <a
+            href="/frontend/pages/detections.html"
+            class="nav-item"
+        >
+            Detections
+            <span
+                class="nav-counter detection-counter"
+                id="detectionNavCounter"
+            >
+                0
+            </span>
+        </a>
+
+        <a
+            href="/frontend/pages/intelligence.html"
+            class="nav-item"
+        >
+            Threat Intelligence
+        </a>
+
+        <a
+            href="/frontend/pages/assets.html"
+            class="nav-item"
+        >
+            Assets
+        </a>
+
+        <a
+            href="/frontend/pages/response.html"
+            class="nav-item"
+        >
+            Response
+        </a>
+
+
+        <button
+            class="nav-more"
+            id="moreButton"
+        >
+            More
+            <span>⌄</span>
+        </button>
+
+
+        <div
+            class="more-menu"
+            id="moreMenu"
+        >
+
+            <div class="more-column">
+
+                <span class="menu-heading">
+                    Protect
+                </span>
+
+                <a href="/frontend/pages/vulnerabilities.html">
+                    Vulnerabilities
+                </a>
+
+                <a href="/frontend/pages/identity.html">
+                    Identity
+                </a>
+
+                <a href="/frontend/pages/zero-trust.html">
+                    Zero Trust
+                </a>
+
+            </div>
+
+
+            <div class="more-column">
+
+                <span class="menu-heading">
+                    Investigate
+                </span>
+
+                <a href="/frontend/pages/endpoints.html">
+                    Endpoints
+                </a>
+
+                <a href="/frontend/pages/hunting.html">
+                    Threat Hunting
+                </a>
+
+                <a href="/frontend/pages/forensics.html">
+                    Forensics
+                </a>
+
+                <a href="/frontend/pages/cases.html">
+                    Cases
+                </a>
+
+            </div>
+
+
+            <div class="more-column">
+
+                <span class="menu-heading">
+                    Infrastructure
+                </span>
+
+                <a href="/frontend/pages/cloud.html">
+                    Cloud
+                </a>
+
+                <a href="/frontend/pages/kubernetes.html">
+                    Kubernetes
+                </a>
+
+                <a href="/frontend/pages/dlp.html">
+                    DLP
+                </a>
+
+            </div>
+
+
+            <div class="more-column">
+
+                <span class="menu-heading">
+                    Governance
+                </span>
+
+                <a href="/frontend/pages/recovery.html">
+                    Recovery
+                </a>
+
+                <a href="/frontend/pages/risk.html">
+                    Risk
+                </a>
+
+                <a href="/frontend/pages/compliance.html">
+                    Compliance
+                </a>
+
+                <a href="/frontend/pages/reports.html">
+                    Reports
+                </a>
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+    <!-- =========================================================
+         MAIN CONTENT
+    ========================================================== -->
+
+    <main class="dashboard">
+
+        <!-- PAGE HEADER -->
+
+        <section class="page-header">
+
+            <div>
+
+                <div class="breadcrumb">
+                    PHOENIX / SECURITY OPERATIONS CENTER
+                </div>
+
+                <h1>
+                    Security Operations
+                </h1>
+
+                <p>
+                    Enterprise-wide visibility, detection, investigation and coordinated response.
+                </p>
+
+            </div>
+
+
+            <div class="dashboard-controls">
+
+                <select id="timeRange">
+
+                    <option value="24">
+                        Last 24 hours
+                    </option>
+
+                    <option value="7">
+                        Last 7 days
+                    </option>
+
+                    <option value="30">
+                        Last 30 days
+                    </option>
+
+                </select>
+
+
+                <div class="live-status">
+
+                    <span></span>
+
+                    LIVE
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             KPI STRIP
+        ====================================================== -->
+
+        <section class="metric-strip">
+
+            <article class="metric-card critical-card">
+
+                <div class="metric-symbol">
+                    !
+                </div>
+
+                <div class="metric-content">
+
+                    <span class="metric-label">
+                        Active Incidents
+                    </span>
+
+                    <strong id="metricIncidents">
+                        —
+                    </strong>
+
+                    <small>
+                        Active investigations
+                    </small>
+
+                </div>
+
+                <div class="metric-trend critical-trend">
+                    OPEN
+                </div>
+
+            </article>
+
+
+            <article class="metric-card alert-card">
+
+                <div class="metric-symbol">
+                    ♢
+                </div>
+
+                <div class="metric-content">
+
+                    <span class="metric-label">
+                        Critical Alerts
+                    </span>
+
+                    <strong id="metricCritical">
+                        —
+                    </strong>
+
+                    <small>
+                        Require attention
+                    </small>
+
+                </div>
+
+                <div class="metric-trend">
+                    ALERT
+                </div>
+
+            </article>
+
+
+            <article class="metric-card event-card">
+
+                <div class="metric-symbol">
+                    ▤
+                </div>
+
+                <div class="metric-content">
+
+                    <span class="metric-label">
+                        Telemetry Events
+                    </span>
+
+                    <strong id="metricEvents">
+                        —
+                    </strong>
+
+                    <small>
+                        Centralized telemetry
+                    </small>
+
+                </div>
+
+                <div class="metric-trend">
+                    SIEM
+                </div>
+
+            </article>
+
+
+            <article class="metric-card detection-card">
+
+                <div class="metric-symbol">
+                    ⌘
+                </div>
+
+                <div class="metric-content">
+
+                    <span class="metric-label">
+                        Detections
+                    </span>
+
+                    <strong id="metricDetections">
+                        —
+                    </strong>
+
+                    <small>
+                        Detection activity
+                    </small>
+
+                </div>
+
+                <div class="metric-trend">
+                    ENGINE
+                </div>
+
+            </article>
+
+
+            <article class="metric-card asset-card">
+
+                <div class="metric-symbol">
+                    ▣
+                </div>
+
+                <div class="metric-content">
+
+                    <span class="metric-label">
+                        Assets
+                    </span>
+
+                    <strong id="metricAssets">
+                        —
+                    </strong>
+
+                    <small>
+                        Enterprise inventory
+                    </small>
+
+                </div>
+
+                <div class="metric-trend">
+                    INVENTORY
+                </div>
+
+            </article>
+
+
+            <article class="metric-card intel-card">
+
+                <div class="metric-symbol">
+                    ◇
+                </div>
+
+                <div class="metric-content">
+
+                    <span class="metric-label">
+                        Intelligence IOCs
+                    </span>
+
+                    <strong id="metricIndicators">
+                        —
+                    </strong>
+
+                    <small>
+                        Intelligence records
+                    </small>
+
+                </div>
+
+                <div class="metric-trend">
+                    TI
+                </div>
+
+            </article>
+
+        </section>
+
+
+        <!-- =====================================================
+             PRIMARY OPERATIONS GRID
+        ====================================================== -->
+
+        <section class="operations-grid">
+
+
+            <!-- RECENT INCIDENTS -->
+
+            <article class="panel incidents-panel">
+
+                <header class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            Recent Incidents
+                        </h2>
+
+                        <span>
+                            Highest priority investigations
+                        </span>
+
+                    </div>
+
+                    <a href="/frontend/pages/incidents.html">
+                        View all →
+                    </a>
+
+                </header>
+
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Incident
+                                </th>
+
+                                <th>
+                                    Title
+                                </th>
+
+                                <th>
+                                    Severity
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                                <th>
+                                    Priority
+                                </th>
+
+                                <th>
+                                    Detected
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="incidentTable">
+
+                            <tr>
+
+                                <td colspan="6">
+                                    <div class="table-loading">
+                                        Loading incident data...
+                                    </div>
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </article>
+
+
+            <!-- LIVE ACTIVITY -->
+
+            <article class="panel activity-panel">
+
+                <header class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            Live Security Activity
+                        </h2>
+
+                        <span>
+                            Latest SIEM telemetry
+                        </span>
+
+                    </div>
+
+                    <div class="stream-indicator">
+
+                        <span></span>
+
+                        Streaming
+
+                    </div>
+
+                </header>
+
+
+                <div
+                    class="activity-feed"
+                    id="activityFeed"
+                >
+
+                    <div class="table-loading">
+                        Loading security activity...
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <!-- EVENT TREND -->
+
+            <article class="panel trend-panel">
+
+                <header class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            Security Event Trend
+                        </h2>
+
+                        <span>
+                            Event volume across available telemetry
+                        </span>
+
+                    </div>
+
+                    <span
+                        class="panel-meta"
+                        id="trendLabel"
+                    >
+                        Last 24 hours
+                    </span>
+
+                </header>
+
+
+                <div class="trend-chart">
+
+                    <canvas id="eventTrendChart"></canvas>
+
+                </div>
+
+            </article>
+
+
+            <!-- PLATFORM HEALTH -->
+
+            <article class="panel health-panel">
+
+                <header class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            Platform Health
+                        </h2>
+
+                        <span>
+                            PHOENIX core services
+                        </span>
+
+                    </div>
+
+                    <div
+                        class="health-state"
+                        id="healthState"
+                    >
+                        Checking
+                    </div>
+
+                </header>
+
+
+                <div
+                    class="health-list"
+                    id="healthList"
+                >
+
+                    <div class="table-loading">
+                        Checking platform...
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <!-- THREAT INTELLIGENCE -->
+
+            <article class="panel intelligence-panel">
+
+                <header class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            Threat Intelligence
+                        </h2>
+
+                        <span>
+                            Observed intelligence matches
+                        </span>
+
+                    </div>
+
+                    <a href="/frontend/pages/intelligence.html">
+                        View all →
+                    </a>
+
+                </header>
+
+
+                <div
+                    class="intel-list"
+                    id="intelList"
+                >
+
+                    <div class="table-loading">
+                        Loading intelligence...
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <!-- DETECTIONS -->
+
+            <article class="panel detections-panel">
+
+                <header class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            Recent Detections
+                        </h2>
+
+                        <span>
+                            Detection engine activity
+                        </span>
+
+                    </div>
+
+                    <a href="/frontend/pages/detections.html">
+                        View all →
+                    </a>
+
+                </header>
+
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Alert
+                                </th>
+
+                                <th>
+                                    Rule
+                                </th>
+
+                                <th>
+                                    Severity
+                                </th>
+
+                                <th>
+                                    Confidence
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="detectionTable">
+
+                            <tr>
+
+                                <td colspan="5">
+
+                                    <div class="table-loading">
+                                        Loading detection data...
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </article>
+
+
+            <!-- TELEMETRY -->
+
+            <article class="panel telemetry-panel">
+
+                <header class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            Telemetry Sources
+                        </h2>
+
+                        <span>
+                            Event distribution by source
+                        </span>
+
+                    </div>
+
+                </header>
+
+
+                <div
+                    class="telemetry-list"
+                    id="telemetryList"
+                >
+
+                    <div class="table-loading">
+                        Calculating telemetry...
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <!-- INCIDENT SEVERITY -->
+
+            <article class="panel severity-panel">
+
+                <header class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            Incident Severity
+                        </h2>
+
+                        <span>
+                            Current incident distribution
+                        </span>
+
+                    </div>
+
+                </header>
+
+
+                <div
+                    class="severity-list"
+                    id="severityList"
+                >
+
+                </div>
+
+            </article>
+
+
+            <!-- QUICK ACTIONS -->
+
+            <article class="panel quick-panel">
+
+                <header class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            Quick Actions
+                        </h2>
+
+                        <span>
+                            Common SOC operations
+                        </span>
+
+                    </div>
+
+                </header>
+
+
+                <div class="quick-actions">
+
+                    <a href="/frontend/pages/events.html">
+                        <span>⌕</span>
+                        Search Events
+                    </a>
+
+                    <a href="/frontend/pages/detections.html">
+                        <span>▷</span>
+                        Run Detection
+                    </a>
+
+                    <a href="/frontend/pages/cases.html">
+                        <span>□</span>
+                        Create Case
+                    </a>
+
+                    <a href="/frontend/pages/intelligence.html">
+                        <span>◇</span>
+                        Lookup IOC
+                    </a>
+
+                </div>
+
+            </article>
+
+
+        </section>
+
+
+        <!-- =====================================================
+             FOOTER STATUS
+        ====================================================== -->
+
+        <footer class="dashboard-footer">
+
+            <div>
+                PHOENIX SOC
+                <span>•</span>
+                Enterprise Security Operations
+            </div>
+
+            <div class="footer-services">
+
+                <span>
+                    API
+                    <i id="footerApi"></i>
+                </span>
+
+                <span>
+                    DB
+                    <i id="footerDb"></i>
+                </span>
+
+                <span>
+                    SIEM
+                    <i id="footerSiem"></i>
+                </span>
+
+                <span>
+                    Detection
+                    <i id="footerDetection"></i>
+                </span>
+
+                <span>
+                    SOAR
+                    <i id="footerSoar"></i>
+                </span>
+
+            </div>
+
+        </footer>
+
+    </main>
+
+</div>
+
+
+<!-- TOAST -->
+
+<div
+    id="toast"
+    class="toast"
+></div>
+
+
+<script src="/frontend/js/api.js"></script>
+<script src="/frontend/js/auth-guard.js"></script>
+<script src="/frontend/js/navigation.js"></script>
+<script src="/frontend/js/dashboard.js"></script>
+
+</body>
+</html>

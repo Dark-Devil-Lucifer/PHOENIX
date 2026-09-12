@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PHOENIX | Cases</title>
+<link rel="stylesheet" href="/frontend/css/phoenix.css">
+    <link rel="stylesheet" href="/frontend/css/phoenix-theme.css?v=2">
+    
+
+<style>
+.case-page{max-width:1780px;margin:auto;padding:24px 26px 42px}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:16px}
+.eyebrow{font-size:8px;font-weight:800;letter-spacing:.16em;color:#4c9aca;margin-bottom:5px}
+.page-head h1{margin:0;font-size:25px}
+.page-head p{margin:6px 0 0;color:#718997;font-size:10px}
+.actions{display:flex;gap:7px}
+.button{height:34px;padding:0 12px;border:1px solid var(--border);border-radius:6px;background:#0b1d2b;color:#a8bdc9;font-size:9px;font-weight:700;cursor:pointer}
+.button:hover{background:#102b3d;border-color:#315f79;color:#e0edf3}
+.button.primary{background:#0d3550;border-color:#276f9f;color:#9dd7ff}
+
+.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin-bottom:11px}
+.metric{min-height:69px;padding:11px 13px;border:1px solid var(--border);border-radius:7px;background:#0b1d2b}
+.metric span{display:block;color:#688292;font-size:7px;text-transform:uppercase;letter-spacing:.08em}
+.metric strong{display:block;margin-top:8px;color:#d6e3e8;font-size:20px}
+.metric.blue strong{color:#68bdff}
+.metric.red strong{color:#ff6579}
+.metric.orange strong{color:#ffab6e}
+.metric.yellow strong{color:#e6cb69}
+.metric.green strong{color:#61d7a7}
+
+.layout{display:grid;grid-template-columns:minmax(570px,1.1fr) minmax(450px,.9fr);gap:11px}
+.panel{border:1px solid var(--border);border-radius:8px;background:#0b1d2b;overflow:hidden}
+.panel-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border)}
+.panel-head h2{margin:0;font-size:11px}
+.panel-head p{margin:3px 0 0;color:#637e8e;font-size:8px}
+
+.toolbar{display:grid;grid-template-columns:1fr 125px 125px auto;gap:7px;padding:11px;background:#091a28;border-bottom:1px solid var(--border)}
+.toolbar input,.toolbar select{height:33px;box-sizing:border-box;border:1px solid var(--border);border-radius:5px;background:#0b2030;color:#c2d1d8;padding:0 9px;font-size:8px;outline:none}
+.toolbar input:focus,.toolbar select:focus{border-color:#327fa9}
+
+.table-container{overflow:auto;max-height:650px}
+table{width:100%;border-collapse:collapse}
+th{position:sticky;top:0;z-index:2;background:#091a28;padding:8px 9px;border-bottom:1px solid #25465b;text-align:left;color:#617c8d;font-size:7px;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+td{padding:10px 9px;border-bottom:1px solid rgba(25,57,77,.5);color:#a9bdc6;font-size:8px;vertical-align:top}
+.case-row{cursor:pointer}
+.case-row:hover{background:#102b3d}
+.case-row.selected{background:#103044;box-shadow:inset 2px 0 #38aaff}
+.uid{font:7px ui-monospace,monospace;color:#4caef0}
+.title{margin-top:4px;color:#d3dfe5;font-size:9px;font-weight:700}
+.sub{margin-top:3px;color:#617b8b;font-size:7px}
+.state{display:inline-flex;padding:4px 6px;border-radius:4px;border:1px solid #294b61;background:#10293a;color:#9db7c6;font-size:7px;text-transform:uppercase}
+.state.open,.state.investigating{border-color:#65432f;background:#2a1e18;color:#ffad70}
+.state.contained{border-color:#5b502d;background:#292417;color:#e5cb69}
+.state.resolved,.state.closed{border-color:#275845;background:#0d2821;color:#61d7a7}
+.priority{font-weight:800;color:#c9d9e0}
+
+.detail{min-height:720px}
+.detail-head{padding:15px;border-bottom:1px solid var(--border);background:#091b2a}
+.detail-top{display:flex;justify-content:space-between;gap:12px}
+.detail-title{font-size:17px;color:#d9e5ea;margin:3px 0}
+.detail-uid{font:8px ui-monospace,monospace;color:#4caef0}
+.badges{display:flex;gap:6px;flex-wrap:wrap}
+.detail-actions{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+
+.section{border-bottom:1px solid var(--border)}
+.section-title{padding:10px 13px;border-bottom:1px solid var(--border);font-size:9px;font-weight:750;color:#cfdde3}
+.context{display:grid;grid-template-columns:125px 1fr}
+.context div{padding:8px 10px;border-bottom:1px solid rgba(25,57,77,.45);font-size:8px;word-break:break-word}
+.context div:nth-child(odd){color:#627c8c}
+.context div:nth-child(even){color:#c2d2da}
+.description{padding:12px;color:#8299a6;font-size:8px;line-height:1.65}
+
+.evidence-list{max-height:330px;overflow:auto}
+.evidence{padding:10px 12px;border-bottom:1px solid rgba(25,57,77,.45)}
+.evidence:hover{background:#0d2535}
+.evidence-top{display:flex;justify-content:space-between;gap:10px}
+.evidence-name{font-size:8px;color:#cddae0;font-weight:700}
+.evidence-meta{margin-top:4px;color:#587486;font:7px ui-monospace,monospace}
+.evidence-description{margin-top:4px;color:#708997;font-size:7px;line-height:1.5}
+
+.add-evidence{padding:12px;background:#091a28}
+.add-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.add-grid input,.add-grid select{height:32px;box-sizing:border-box;border:1px solid var(--border);border-radius:5px;background:#0b2030;color:#c2d1d8;padding:0 8px;font-size:8px;outline:none}
+.add-grid input:focus,.add-grid select:focus{border-color:#327fa9}
+.add-grid .full{grid-column:1/-1}
+.add-actions{display:flex;justify-content:flex-end;margin-top:8px}
+
+.empty{padding:35px;text-align:center;color:#5e7788;font-size:8px}
+.loading{padding:35px;text-align:center;color:#607a8b;font-size:8px}
+
+.modal-backdrop{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px}
+.modal-backdrop.open{display:flex}
+.modal{width:min(620px,100%);border:1px solid #294d63;border-radius:8px;background:#091a28;box-shadow:0 25px 70px rgba(0,0,0,.55)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:13px 15px;border-bottom:1px solid var(--border)}
+.modal-head h2{margin:0;font-size:12px;color:#d6e2e7}
+.close{width:30px;height:30px;border:1px solid var(--border);border-radius:5px;background:#0b2030;color:#9fb3bd;cursor:pointer}
+.modal-body{padding:14px}
+.modal-body label{display:block;margin:0 0 5px;color:#668091;font-size:7px;text-transform:uppercase;letter-spacing:.06em}
+.modal-body input,.modal-body textarea,.modal-body select{width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:5px;background:#071724;color:#c7d7df;padding:9px;font-size:8px;outline:none}
+.modal-body textarea{min-height:80px;resize:vertical}
+.form-row{margin-bottom:10px}
+.modal-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:12px}
+
+.toast{position:fixed;right:20px;bottom:20px;z-index:200;padding:10px 13px;border:1px solid #2b5c76;border-radius:6px;background:#0a2232;color:#bcd2dd;font-size:8px;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s}
+.toast.show{opacity:1;transform:translateY(0)}
+
+@media(max-width:1250px){
+.metrics{grid-template-columns:repeat(3,1fr)}
+.layout{grid-template-columns:1fr}
+}
+@media(max-width:850px){
+.toolbar{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+.case-page{padding:17px 10px 30px}
+.page-head{flex-direction:column;align-items:flex-start}
+.metrics{grid-template-columns:repeat(2,1fr)}
+.toolbar{grid-template-columns:1fr}
+.add-grid{grid-template-columns:1fr}
+.add-grid .full{grid-column:auto}
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header class="topbar">
+
+<a class="brand" href="/frontend/" style="text-decoration:none">
+<div class="brand-symbol"><span>P</span></div>
+<div class="brand-text">
+<strong>PHOENIX</strong>
+<span>Autonomous Enterprise Cyber Defense Platform</span>
+</div>
+</a>
+
+<div class="global-search">
+<span class="search-icon">⌕</span>
+<input id="globalSearch" type="search" placeholder="Search events, incidents, assets, IOCs...">
+<kbd>/</kbd>
+</div>
+
+<div class="header-actions">
+
+<button class="header-button" id="refreshHeader">↻</button>
+
+<button class="header-button">
+♢
+<span class="notification-dot"></span>
+</button>
+
+<div class="header-divider"></div>
+
+<div class="analyst-menu">
+<div class="analyst-avatar">A</div>
+<div class="analyst-info">
+<strong>Analyst</strong>
+<span>SOC Analyst</span>
+</div>
+</div>
+
+</div>
+</header>
+
+
+<nav class="primary-nav">
+
+<a class="nav-item" href="/frontend/">Security Operations</a>
+<a class="nav-item" href="/frontend/pages/incidents.html">Incidents</a>
+<a class="nav-item" href="/frontend/pages/detections.html">Detections</a>
+<a class="nav-item" href="/frontend/pages/intelligence.html">Threat Intelligence</a>
+<a class="nav-item" href="/frontend/pages/assets.html">Assets</a>
+<a class="nav-item" href="/frontend/pages/response.html">Response</a>
+
+<button class="nav-more" id="moreButton">
+More <span>⌄</span>
+</button>
+
+<div class="more-menu" id="moreMenu">
+
+<div class="more-column">
+<span class="menu-heading">Protect</span>
+<a href="/frontend/pages/vulnerabilities.html">Vulnerabilities</a>
+<a href="/frontend/pages/identity.html">Identity</a>
+<a href="/frontend/pages/zero-trust.html">Zero Trust</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Investigate</span>
+<a href="/frontend/pages/endpoints.html">Endpoints</a>
+<a href="/frontend/pages/hunting.html">Threat Hunting</a>
+<a href="/frontend/pages/forensics.html">Forensics</a>
+<a class="active" href="/frontend/pages/cases.html">Cases</a>
+<a href="/frontend/pages/siem.html">SIEM</a>
+<a href="/frontend/pages/alerts.html">Alert Investigation</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Infrastructure</span>
+<a href="/frontend/pages/cloud.html">Cloud</a>
+<a href="/frontend/pages/kubernetes.html">Kubernetes</a>
+<a href="/frontend/pages/dlp.html">DLP</a>
+</div>
+
+<div class="more-column">
+<span class="menu-heading">Governance</span>
+<a href="/frontend/pages/recovery.html">Recovery</a>
+<a href="/frontend/pages/risk.html">Risk</a>
+<a href="/frontend/pages/compliance.html">Compliance</a>
+<a href="/frontend/pages/reports.html">Reports</a>
+</div>
+
+</div>
+</nav>
+
+
+<main class="case-page">
+
+<section class="page-head">
+
+<div>
+<div class="eyebrow">SOC / INVESTIGATION</div>
+<h1>Case Management</h1>
+<p>
+Maintain investigation records, preserve evidence references and connect analyst work to originating security incidents.
+</p>
+</div>
+
+<div class="actions">
+<button class="button" id="refreshButton">↻ Refresh</button>
+<button class="button primary" id="createCaseButton">Create From Incident</button>
+</div>
+
+</section>
+
+
+<section class="metrics">
+
+<div class="metric blue">
+<span>Total Cases</span>
+<strong id="metricTotal">—</strong>
+</div>
+
+<div class="metric red">
+<span>High Priority</span>
+<strong id="metricHigh">—</strong>
+</div>
+
+<div class="metric orange">
+<span>Open</span>
+<strong id="metricOpen">—</strong>
+</div>
+
+<div class="metric yellow">
+<span>Investigating</span>
+<strong id="metricInvestigating">—</strong>
+</div>
+
+<div class="metric green">
+<span>Resolved</span>
+<strong id="metricResolved">—</strong>
+</div>
+
+<div class="metric">
+<span>Evidence Items</span>
+<strong id="metricEvidence">—</strong>
+</div>
+
+</section>
+
+
+<section class="layout">
+
+
+<section class="panel">
+
+<header class="panel-head">
+
+<div>
+<h2>Case Register</h2>
+<p>Investigation records and evidence ownership</p>
+</div>
+
+<div id="queueState" style="font-size:8px;color:#617b8c">
+Loading
+</div>
+
+</header>
+
+
+<div class="toolbar">
+
+<input id="searchInput" placeholder="Search case, UID, title, incident...">
+
+<select id="statusFilter">
+<option value="">All status</option>
+<option value="open">Open</option>
+<option value="investigating">Investigating</option>
+<option value="contained">Contained</option>
+<option value="resolved">Resolved</option>
+<option value="closed">Closed</option>
+</select>
+
+<select id="priorityFilter">
+<option value="">All priority</option>
+<option value="high">High</option>
+<option value="medium">Medium</option>
+<option value="low">Low</option>
+</select>
+
+<button class="button" id="clearFilters">Clear</button>
+
+</div>
+
+
+<div class="table-container">
+
+<table>
+
+<thead>
+<tr>
+<th>Case</th>
+<th>Status</th>
+<th>Priority</th>
+<th>Incident</th>
+<th>Created</th>
+</tr>
+</thead>
+
+<tbody id="caseRows">
+
+<tr>
+<td colspan="5">
+<div class="loading">
+Loading case register...
+</div>
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+
+<section class="panel detail">
+
+<div id="detailEmpty" class="empty" style="min-height:680px;display:grid;place-items:center">
+Select a case to begin investigation.
+</div>
+
+
+<div id="detailContent" style="display:none">
+
+<header class="detail-head">
+
+<div class="detail-top">
+
+<div>
+<div class="eyebrow">ACTIVE CASE</div>
+<div class="detail-title" id="detailTitle">Security Case</div>
+<div class="detail-uid" id="detailUid">—</div>
+</div>
+
+<div class="badges">
+<span id="detailStatus"></span>
+</div>
+
+</div>
+
+<div class="detail-actions">
+<button class="button" id="refreshDetail">↻ Refresh Evidence</button>
+</div>
+
+</header>
+
+
+<section class="section">
+
+<div class="section-title">
+Case Context
+</div>
+
+<div class="context">
+
+<div>Case UID</div>
+<div id="ctxUid">—</div>
+
+<div>Status</div>
+<div id="ctxStatus">—</div>
+
+<div>Priority</div>
+<div id="ctxPriority">—</div>
+
+<div>Incident ID</div>
+<div id="ctxIncident">—</div>
+
+<div>Assigned To</div>
+<div id="ctxAssigned">—</div>
+
+<div>Created</div>
+<div id="ctxCreated">—</div>
+
+<div>Updated</div>
+<div id="ctxUpdated">—</div>
+
+</div>
+
+<div class="description" id="ctxDescription">
+No case description recorded.
+</div>
+
+</section>
+
+
+<section class="section">
+
+<div class="section-title">
+Evidence Register
+</div>
+
+<div class="evidence-list" id="evidenceList">
+
+<div class="empty">
+No evidence loaded.
+</div>
+
+</div>
+
+
+<div class="add-evidence">
+
+<div class="add-grid">
+
+<div>
+<label>Evidence Type</label>
+<select id="evidenceType">
+<option value="security_event">Security Event</option>
+<option value="alert">Alert</option>
+<option value="incident">Incident</option>
+<option value="forensic_artifact">Forensic Artifact</option>
+<option value="threat_intelligence">Threat Intelligence</option>
+<option value="other">Other</option>
+</select>
+</div>
+
+<div>
+<label>Reference ID</label>
+<input id="evidenceReference" placeholder="Database record ID">
+</div>
+
+<div class="full">
+<label>Description</label>
+<input id="evidenceDescription" placeholder="Describe why this evidence is relevant">
+</div>
+
+</div>
+
+<div class="add-actions">
+<button class="button primary" id="addEvidenceButton">
+Add Evidence
+</button>
+</div>
+
+</div>
+
+</section>
+
+
+<section class="section">
+
+<div class="section-title">
+Investigation Guidance
+</div>
+
+<div class="finding" style="margin:10px">
+<div class="finding-title">Evidence handling</div>
+<div class="finding-text">
+Record only evidence references that can be traced back to PHOENIX telemetry or authorized investigation artifacts. Preserve identifiers, timestamps and descriptions so the investigation remains reproducible and auditable.
+</div>
+</div>
+
+</section>
+
+</div>
+
+</section>
+
+</section>
+
+</main>
+
+</div>
+
+
+<div class="modal-backdrop" id="caseModal">
+
+<div class="modal">
+
+<header class="modal-head">
+<h2>Create Case From Incident</h2>
+<button class="close" id="closeModal">×</button>
+</header>
+
+<div class="modal-body">
+
+<div class="form-row">
+<label>Incident ID</label>
+<input id="incidentIdInput" type="number" min="1" placeholder="Incident database ID">
+</div>
+
+<div class="form-row">
+<label>Reason</label>
+<textarea id="caseReason" placeholder="Optional analyst context"></textarea>
+</div>
+
+<div class="modal-actions">
+<button class="button" id="cancelModal">Cancel</button>
+<button class="button primary" id="submitCase">Create Case</button>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="toast" id="toast"></div>
+
+
+<script src="/frontend/js/api.js"></script>
+<script src="/frontend/js/auth-guard.js"></script>
+<script src="/frontend/js/navigation.js"></script>
+
+<script>
+(() => {
+
+"use strict";
+
+const $ =
+id => document.getElementById(id);
+
+let cases = [];
+let selectedCase = null;
+
+
+function escapeHTML(value) {
+
+return String(value ?? "")
+.replace(
+/[&<>"']/g,
+char =>
+({
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#039;"
+}[char])
+);
+
+}
+
+
+function normalize(value) {
+
+return String(value ?? "")
+.trim()
+.toLowerCase();
+
+}
+
+
+function list(data, keys = []) {
+
+if (Array.isArray(data)) {
+return data;
+}
+
+if (Array.isArray(data?.items)) {
+return data.items;
+}
+
+for (const key of keys) {
+
+if (Array.isArray(data?.[key])) {
+return data[key];
+}
+
+}
+
+return [];
+
+}
+
+
+function formatDate(value) {
+
+if (!value) {
+return "—";
+}
+
+const date =
+new Date(value);
+
+if (Number.isNaN(date.getTime())) {
+return escapeHTML(value);
+}
+
+return date.toLocaleString(
+[],
+{
+month:"short",
+day:"2-digit",
+hour:"2-digit",
+minute:"2-digit"
+}
+);
+
+}
+
+
+function statusHTML(value) {
+
+const state =
+normalize(
+value || "unknown"
+);
+
+return `
+<span class="state ${escapeHTML(state)}">
+${escapeHTML(value || "unknown")}
+</span>
+`;
+
+}
+
+
+function toast(message) {
+
+const element =
+$("toast");
+
+element.textContent =
+message;
+
+element.classList.add("show");
+
+setTimeout(
+() =>
+element.classList.remove("show"),
+2700
+);
+
+}
+
+
+function updateMetrics() {
+
+const high =
+cases.filter(
+item =>
+normalize(item.priority) === "high" ||
+Number(item.priority) >= 70
+).length;
+
+const open =
+cases.filter(
+item =>
+["resolved","closed"]
+.indexOf(
+normalize(item.status)
+) === -1
+).length;
+
+const investigating =
+cases.filter(
+item =>
+normalize(item.status) === "investigating"
+).length;
+
+const resolved =
+cases.filter(
+item =>
+["resolved","closed"]
+.includes(
+normalize(item.status)
+)
+).length;
+
+let evidence =
+0;
+
+cases.forEach(
+item => {
+
+evidence +=
+Number(
+item.evidence_count ||
+item.evidenceCount ||
+0
+);
+
+}
+);
+
+
+$("metricTotal")
+.textContent =
+cases.length;
+
+$("metricHigh")
+.textContent =
+high;
+
+$("metricOpen")
+.textContent =
+open;
+
+$("metricInvestigating")
+.textContent =
+investigating;
+
+$("metricResolved")
+.textContent =
+resolved;
+
+$("metricEvidence")
+.textContent =
+evidence;
+
+}
+
+
+function filteredCases() {
+
+const query =
+normalize(
+$("searchInput").value
+);
+
+const status =
+normalize(
+$("statusFilter").value
+);
+
+const priority =
+normalize(
+$("priorityFilter").value
+);
+
+
+return cases.filter(
+item => {
+
+const text =
+[
+item.case_uid,
+item.title,
+item.description,
+item.status,
+item.priority,
+item.incident_id
+]
+.join(" ")
+.toLowerCase();
+
+
+if (
+query &&
+!text.includes(query)
+) {
+return false;
+}
+
+if (
+status &&
+normalize(item.status) !== status
+) {
+return false;
+}
+
+if (
+priority &&
+normalize(item.priority) !== priority
+) {
+return false;
+}
+
+return true;
+
+}
+);
+
+}
+
+
+function renderCases() {
+
+const tbody =
+$("caseRows");
+
+const items =
+[...filteredCases()]
+.sort(
+(a,b) =>
+Number(b.priority || 0) -
+Number(a.priority || 0)
+);
+
+
+if (!items.length) {
+
+tbody.innerHTML = `
+<tr>
+<td colspan="5">
+<div class="empty">
+${
+cases.length
+? "No cases match the current filters."
+: "No cases are currently available."
+}
+</div>
+</td>
+</tr>
+`;
+
+return;
+
+}
+
+
+tbody.innerHTML =
+items
+.map(
+item => `
+
+<tr
+class="case-row ${
+selectedCase &&
+Number(selectedCase.id) ===
+Number(item.id)
+? "selected"
+: ""
+}"
+data-id="${escapeHTML(item.id)}"
+>
+
+<td>
+
+<div class="uid">
+${escapeHTML(
+item.case_uid ||
+`CASE-${item.id}`
+)}
+</div>
+
+<div class="title">
+${escapeHTML(
+item.title ||
+"Security case"
+)}
+</div>
+
+<div class="sub">
+${escapeHTML(
+item.description || ""
+)}
+</div>
+
+</td>
+
+<td>
+${statusHTML(
+item.status
+)}
+</td>
+
+<td class="priority">
+${escapeHTML(
+item.priority ?? "—"
+)}
+</td>
+
+<td class="mono">
+${escapeHTML(
+item.incident_id ??
+"—"
+)}
+</td>
+
+<td>
+${formatDate(
+item.created_at
+)}
+</td>
+
+</tr>
+
+`
+)
+.join("");
+
+
+tbody
+.querySelectorAll(".case-row")
+.forEach(
+row =>
+row.addEventListener(
+"click",
+() =>
+openCase(
+Number(row.dataset.id)
+)
+)
+);
+
+}
+
+
+async function loadCases() {
+
+$("queueState")
+.textContent =
+"Loading...";
+
+try {
+
+const response =
+await PhoenixAPI.cases();
+
+cases =
+list(
+response,
+["cases","items"]
+);
+
+updateMetrics();
+renderCases();
+
+$("queueState")
+.textContent =
+`${cases.length} cases`;
+
+if (selectedCase) {
+
+const current =
+cases.find(
+item =>
+Number(item.id) ===
+Number(selectedCase.id)
+);
+
+if (current) {
+
+await openCase(
+current.id,
+false
+);
+
+}
+
+} else if (cases.length) {
+
+await openCase(
+cases[0].id,
+false
+);
+
+}
+
+} catch(error) {
+
+cases = [];
+
+updateMetrics();
+renderCases();
+
+$("queueState")
+.textContent =
+"API unavailable";
+
+toast(
+`Case API failed: ${error.message}`
+);
+
+}
+
+}
+
+
+async function openCase(
+id,
+showMessage = true
+) {
+
+const base =
+cases.find(
+item =>
+Number(item.id) ===
+Number(id)
+);
+
+if (!base) {
+return;
+}
+
+selectedCase =
+base;
+
+renderCases();
+
+
+$("detailEmpty")
+.style.display =
+"none";
+
+$("detailContent")
+.style.display =
+"block";
+
+
+$("detailTitle")
+.textContent =
+base.title ||
+"Security Case";
+
+$("detailUid")
+.textContent =
+base.case_uid ||
+`CASE-${base.id}`;
+
+$("detailStatus")
+.innerHTML =
+statusHTML(
+base.status
+);
+
+
+$("ctxUid")
+.textContent =
+base.case_uid ||
+`CASE-${base.id}`;
+
+$("ctxStatus")
+.innerHTML =
+statusHTML(
+base.status
+);
+
+$("ctxPriority")
+.textContent =
+base.priority ??
+"—";
+
+$("ctxIncident")
+.textContent =
+base.incident_id ??
+"—";
+
+$("ctxAssigned")
+.textContent =
+base.assigned_to ??
+"Unassigned";
+
+$("ctxCreated")
+.textContent =
+formatDate(
+base.created_at
+);
+
+$("ctxUpdated")
+.textContent =
+formatDate(
+base.updated_at
+);
+
+$("ctxDescription")
+.textContent =
+base.description ||
+"No case description recorded.";
+
+
+$("evidenceList")
+.innerHTML = `
+<div class="loading">
+Loading case evidence...
+</div>
+`;
+
+
+try {
+
+const response =
+await PhoenixAPI.request(
+`/api/cases/${id}`
+);
+
+const detail =
+response?.case ||
+response;
+
+const evidence =
+list(
+response?.evidence ||
+detail?.evidence,
+["evidence","items"]
+);
+
+
+renderCaseDetail(
+detail,
+evidence
+);
+
+if (showMessage) {
+toast("Case investigation loaded.");
+}
+
+} catch(error) {
+
+$("evidenceList")
+.innerHTML = `
+<div class="empty">
+Case evidence unavailable: ${escapeHTML(error.message)}
+</div>
+`;
+
+if (showMessage) {
+toast(
+`Case load failed: ${error.message}`
+);
+}
+
+}
+
+}
+
+
+function renderCaseDetail(
+detail,
+evidence
+) {
+
+if (!detail) {
+return;
+}
+
+$("detailTitle")
+.textContent =
+detail.title ||
+"Security Case";
+
+$("detailUid")
+.textContent =
+detail.case_uid ||
+`CASE-${detail.id}`;
+
+$("detailStatus")
+.innerHTML =
+statusHTML(
+detail.status
+);
+
+$("ctxUid")
+.textContent =
+detail.case_uid ||
+`CASE-${detail.id}`;
+
+$("ctxStatus")
+.innerHTML =
+statusHTML(
+detail.status
+);
+
+$("ctxPriority").textContent =
+detail.priority ??
+"—";
+
+$("ctxIncident").textContent =
+detail.incident_id ??
+"—";
+
+$("ctxAssigned").textContent =
+detail.assigned_to ??
+"Unassigned";
+
+$("ctxCreated")
+textContent =
+formatDate(
+detail.created_at
+);
+
+$("ctxUpdated")
+textContent =
+formatDate(
+detail.updated_at
+);
+
+$("ctxDescription")
+textContent =
+detail.description ||
+"No case description recorded.";
+
+
+if (!evidence.length) {
+
+$("evidenceList")
+.innerHTML = `
+<div class="empty">
+No evidence items have been added to this case.
+</div>
+`;
+
+return;
+
+}
+
+
+$("evidenceList")
+.innerHTML =
+evidence
+.map(
+item => `
+
+<div class="evidence">
+
+<div class="evidence-top">
+
+<div class="evidence-name">
+${escapeHTML(
+item.evidence_type ||
+"Evidence"
+)}
+</div>
+
+<div class="uid">
+${escapeHTML(
+item.reference_id ??
+"—"
+)}
+</div>
+
+</div>
+
+<div class="evidence-meta">
+
+Added by:
+${escapeHTML(
+item.added_by ??
+"—"
+)}
+
+ ·
+${formatDate(
+item.created_at
+)}
+
+</div>
+
+<div class="evidence-description">
+
+${escapeHTML(
+item.description ||
+"No evidence description."
+)}
+
+</div>
+
+</div>
+
+`
+)
+.join("");
+
+}
+
+
+async function addEvidence() {
+
+if (!selectedCase) {
+
+toast("Select a case first.");
+
+return;
+
+}
+
+
+const reference =
+$("evidenceReference")
+.value.trim();
+
+const description =
+$("evidenceDescription")
+.value.trim();
+
+
+if (!reference) {
+
+toast(
+"Reference ID is required."
+);
+
+return;
+
+}
+
+
+try {
+
+await PhoenixAPI.request(
+`/api/cases/${selectedCase.id}/evidence`,
+{
+method:"POST",
+body:{
+evidence_type:
+$("evidenceType").value,
+reference_id:
+Number(reference) || reference,
+description:
+description || null
+}
+}
+);
+
+$("evidenceReference")
+.value = "";
+
+$("evidenceDescription")
+.value = "";
+
+toast(
+"Evidence reference added."
+);
+
+await openCase(
+selectedCase.id,
+false
+);
+
+} catch(error) {
+
+toast(
+`Evidence creation failed: ${error.message}`
+);
+
+}
+
+}
+
+
+function openModal() {
+
+$("caseModal")
+.classList.add("open");
+
+}
+
+
+function closeModal() {
+
+$("caseModal")
+.classList.remove("open");
+
+}
+
+
+async function createCase() {
+
+const incidentId =
+Number(
+$("incidentIdInput").value
+);
+
+if (!incidentId) {
+
+toast(
+"Enter a valid incident database ID."
+);
+
+return;
+
+}
+
+
+try {
+
+const response =
+await PhoenixAPI.request(
+`/api/cases/from-incident/${incidentId}`,
+{
+method:"POST"
+}
+);
+
+closeModal();
+
+$("incidentIdInput")
+.value = "";
+
+$("caseReason")
+.value = "";
+
+toast(
+response?.message ||
+"Case created from incident."
+);
+
+await loadCases();
+
+} catch(error) {
+
+toast(
+`Case creation failed: ${error.message}`
+);
+
+}
+
+}
+
+
+$("refreshButton")
+.addEventListener(
+"click",
+loadCases
+);
+
+$("refreshHeader")
+.addEventListener(
+"click",
+loadCases
+);
+
+$("refreshDetail")
+.addEventListener(
+"click",
+() => {
+
+if (selectedCase) {
+openCase(
+selectedCase.id
+);
+}
+
+}
+);
+
+
+$("createCaseButton")
+.addEventListener(
+"click",
+openModal
+);
+
+$("closeModal")
+.addEventListener(
+"click",
+closeModal
+);
+
+$("cancelModal")
+.addEventListener(
+"click",
+closeModal
+);
+
+$("submitCase")
+.addEventListener(
+"click",
+createCase
+);
+
+$("addEvidenceButton")
+.addEventListener(
+"click",
+addEvidence
+);
+
+
+$("searchInput")
+.addEventListener(
+"input",
+renderCases
+);
+
+$("statusFilter")
+.addEventListener(
+"change",
+renderCases
+);
+
+$("priorityFilter")
+.addEventListener(
+"change",
+renderCases
+);
+
+
+$("clearFilters")
+.addEventListener(
+"click",
+() => {
+
+$("searchInput").value = "";
+$("statusFilter").value = "";
+$("priorityFilter").value = "";
+
+renderCases();
+
+}
+);
+
+
+
+$("globalSearch")
+.addEventListener(
+"keydown",
+event => {
+
+if (
+event.key === "Enter"
+) {
+
+const value =
+event.target.value.trim();
+
+if (value) {
+
+$("searchInput")
+.value =
+value;
+
+renderCases();
+
+}
+
+}
+});
+
+
+$("caseModal")
+.addEventListener(
+"click",
+event => {
+
+if (
+event.target ===
+$("caseModal")
+) {
+closeModal();
+}
+
+});
+
+
+loadCases();
+
+
+setInterval(
+loadCases,
+30000
+);
+
+})();
+</script>
+
+</body>
+</html>
