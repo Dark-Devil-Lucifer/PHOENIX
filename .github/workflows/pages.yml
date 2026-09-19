@@ -34,7 +34,7 @@ jobs:
         run: |
           rm -rf _site
           mkdir -p _site
-          cp -r frontend/. _site/
+          cp -r frontend _site/
 
       - name: Upload PHOENIX
         uses: actions/upload-pages-artifact@v4
