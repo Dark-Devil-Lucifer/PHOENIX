@@ -1,4 +1,4 @@
-name: Deploy PHOENIX Frontend
+name: Deploy PHOENIX
 
 on:
   push:
@@ -11,25 +11,34 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
 jobs:
   deploy:
-    runs-on: ubuntu-latest
-
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
+    runs-on: ubuntu-latest
+
     steps:
       - name: Checkout PHOENIX
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
+      - name: Prepare PHOENIX Frontend
+        run: |
+          mkdir -p _site
+          cp -r frontend/* _site/
+
       - name: Upload PHOENIX Frontend
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
-          path: './frontend'
+          path: ./_site
 
       - name: Deploy PHOENIX
         id: deployment
