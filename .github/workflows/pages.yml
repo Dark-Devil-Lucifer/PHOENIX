@@ -44,7 +44,7 @@ jobs:
       - name: Upload PHOENIX Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: ./_site/frontend/index.html
+          path: ./_site/frontend/
 
       - name: Deploy PHOENIX
         id: deployment
