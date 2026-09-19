@@ -1423,7 +1423,7 @@
 
 
                     window.location.href =
-                        `/frontend/pages/events.html?q=${encodeURIComponent(query)}`;
+                        `/PHOENIX/frontend/pages/events.html?q=${encodeURIComponent(query)}`;
 
                 }
 

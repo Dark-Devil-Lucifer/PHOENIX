@@ -925,7 +925,7 @@
 
 
         window.location.href =
-            "/frontend/";
+            "/PHOENIX/frontend/";
 
     }
 

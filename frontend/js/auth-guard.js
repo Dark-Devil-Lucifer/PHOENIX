@@ -4,7 +4,7 @@
 
 
 const PUBLIC_PATHS = [
-    "/frontend/login.html"
+    "/PHOENIX/frontend/login.html"
 ];
 
 
@@ -41,7 +41,7 @@ async function verifySession() {
     if (!hasToken()) {
 
         window.location.href =
-            "/frontend/login.html";
+            "/PHOENIX/frontend/login.html";
 
         return;
 
@@ -110,7 +110,7 @@ async function verifySession() {
         );
 
         window.location.href =
-            "/frontend/login.html";
+            "/PHOENIX/frontend/login.html";
 
     }
 

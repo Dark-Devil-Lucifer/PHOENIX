@@ -12,19 +12,19 @@ document.addEventListener("DOMContentLoaded", () => {
     document
         .getElementById("open-incidents")
         ?.addEventListener("click", () => {
-            window.location.href = "/frontend/pages/incidents.html";
+            window.location.href = "/PHOENIX/frontend/pages/incidents.html";
         });
 
     document
         .getElementById("view-all-incidents")
         ?.addEventListener("click", () => {
-            window.location.href = "/frontend/pages/incidents.html";
+            window.location.href = "/PHOENIX/frontend/pages/incidents.html";
         });
 
     document
         .getElementById("view-events")
         ?.addEventListener("click", () => {
-            window.location.href = "/frontend/pages/events.html";
+            window.location.href = "/PHOENIX/frontend/pages/events.html";
         });
 });
 
